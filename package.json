@@ -1,0 +1,16 @@
+{
+  "name": "inner-cosmos",
+  "version": "1.0.0",
+  "description": "Personal website with Python code execution",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev:backend": "cd backend && uv run uvicorn main:app --reload --port 8000",
+    "install:all": "./setup.sh",
+    "build": "cd frontend && npm run build",
+    "preview": "cd frontend && npm run preview"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+} 
