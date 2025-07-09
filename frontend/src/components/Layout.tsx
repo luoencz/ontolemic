@@ -37,7 +37,13 @@ function Layout({ children }: LayoutProps) {
         event.preventDefault();
         if (projectsOpen && focusedIndex === 2 && focusedProjectIndex >= 0) {
           // Navigate within project items
-          setFocusedProjectIndex(prev => prev <= 0 ? projectItems.length - 1 : prev - 1);
+          if (focusedProjectIndex === 0) {
+            // At first project item, go back to Projects button
+            setFocusedProjectIndex(-1);
+          } else {
+            // Move up within project items
+            setFocusedProjectIndex(prev => prev - 1);
+          }
         } else {
           // Navigate main nav items
           setFocusedProjectIndex(-1);
@@ -52,7 +58,14 @@ function Layout({ children }: LayoutProps) {
         event.preventDefault();
         if (projectsOpen && focusedIndex === 2 && focusedProjectIndex >= 0) {
           // Navigate within project items
-          setFocusedProjectIndex(prev => prev >= projectItems.length - 1 ? 0 : prev + 1);
+          if (focusedProjectIndex === projectItems.length - 1) {
+            // At last project item, move to Contact (next main nav item)
+            setFocusedProjectIndex(-1);
+            setFocusedIndex(3); // Contact index
+          } else {
+            // Move down within project items
+            setFocusedProjectIndex(prev => prev + 1);
+          }
         } else if (projectsOpen && focusedIndex === 2 && focusedProjectIndex === -1) {
           // Move into project items from Projects button
           setFocusedProjectIndex(0);
