@@ -13,11 +13,13 @@ export function Search({ isOpen, onClose }: SearchProps) {
   const [results, setResults] = useState<SearchResult[]>([]);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
     if (isOpen && inputRef.current) {
       inputRef.current.focus();
+      setQuery(''); // Clear query when opening
     }
   }, [isOpen]);
 
@@ -32,15 +34,33 @@ export function Search({ isOpen, onClose }: SearchProps) {
     }
   }, [query]);
 
+  // Handle click outside
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleClickOutside = (event: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        onClose();
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isOpen, onClose]);
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     switch (e.key) {
       case 'ArrowUp':
         e.preventDefault();
-        setSelectedIndex(prev => prev > 0 ? prev - 1 : results.length - 1);
+        if (results.length > 0) {
+          setSelectedIndex(prev => prev > 0 ? prev - 1 : results.length - 1);
+        }
         break;
       case 'ArrowDown':
         e.preventDefault();
-        setSelectedIndex(prev => prev < results.length - 1 ? prev + 1 : 0);
+        if (results.length > 0) {
+          setSelectedIndex(prev => prev < results.length - 1 ? prev + 1 : 0);
+        }
         break;
       case 'Enter':
         e.preventDefault();
@@ -67,34 +87,36 @@ export function Search({ isOpen, onClose }: SearchProps) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-start justify-center pt-20">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[80vh] flex flex-col">
-        <div className="p-4 border-b">
-          <input
-            ref={inputRef}
-            type="text"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Search across all pages..."
-            className="w-full px-4 py-2 text-lg border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black"
-          />
-        </div>
+    <div 
+      ref={containerRef}
+      className="fixed top-4 right-4 z-50 w-96"
+    >
+      <div className="bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden transition-all duration-200 ease-out">
+        <input
+          ref={inputRef}
+          type="text"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder="Search..."
+          className="w-full px-4 py-3 text-sm focus:outline-none"
+        />
         
         {results.length > 0 && (
-          <div className="flex-1 overflow-y-auto">
+          <div className="border-t border-gray-100 max-h-96 overflow-y-auto">
             {results.map((result, index) => (
               <button
                 key={`${result.pagePath}-${result.index}`}
                 onClick={() => navigateToResult(result)}
-                className={`w-full text-left px-4 py-3 hover:bg-gray-100 border-b border-gray-100 ${
-                  index === selectedIndex ? 'bg-gray-100' : ''
+                onMouseEnter={() => setSelectedIndex(index)}
+                className={`w-full text-left px-4 py-2.5 hover:bg-gray-50 text-sm transition-colors ${
+                  index === selectedIndex ? 'bg-gray-50' : ''
                 }`}
               >
-                <div className="font-medium text-sm text-gray-600">
+                <div className="font-medium text-xs text-gray-500 mb-0.5">
                   {result.pageTitle}
                 </div>
-                <div className="text-sm text-gray-800 mt-1">
+                <div className="text-gray-700 text-xs leading-relaxed">
                   ...{highlightMatch(result.context, query)}...
                 </div>
               </button>
@@ -103,16 +125,10 @@ export function Search({ isOpen, onClose }: SearchProps) {
         )}
         
         {query.length >= 2 && results.length === 0 && (
-          <div className="p-8 text-center text-gray-500">
-            No results found for "{query}"
+          <div className="px-4 py-3 text-xs text-gray-500 border-t border-gray-100">
+            No results found
           </div>
         )}
-        
-        <div className="p-4 border-t text-sm text-gray-500">
-          <span className="mr-4">↑↓ Navigate</span>
-          <span className="mr-4">Enter Select</span>
-          <span>Esc Close</span>
-        </div>
       </div>
     </div>
   );
@@ -126,7 +142,7 @@ function highlightMatch(text: string, query: string): JSX.Element {
     <>
       {parts.map((part, i) => 
         regex.test(part) ? (
-          <mark key={i} className="bg-yellow-300">{part}</mark>
+          <mark key={i} className="bg-yellow-200 text-gray-900">{part}</mark>
         ) : (
           <span key={i}>{part}</span>
         )
