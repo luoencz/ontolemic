@@ -15,6 +15,7 @@ function Layout({ children }: LayoutProps) {
   const [showControls, setShowControls] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
+  const [sidebarVisible, setSidebarVisible] = useState(true);
   const { quote, loading } = useRandomQuote();
 
   const navItems = [
@@ -51,6 +52,11 @@ function Layout({ children }: LayoutProps) {
         case '?':
           event.preventDefault();
           setShowControls(true);
+          return;
+          
+        case 'e':
+          event.preventDefault();
+          setSidebarVisible(prev => !prev);
           return;
       }
     }
@@ -207,9 +213,11 @@ function Layout({ children }: LayoutProps) {
   }, [location.pathname]);
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen relative">
       {/* Sidebar */}
-      <div className="w-64 p-8 flex flex-col">
+      <div className={`fixed left-0 top-0 h-full w-64 p-8 flex flex-col transition-all duration-300 ease-in-out bg-white z-30 ${
+        sidebarVisible ? 'translate-x-0' : '-translate-x-full'
+      }`}>
         <Link to="/" className="text-2xl font-normal hover:underline">
           Inner Cosmos
         </Link>
@@ -302,6 +310,16 @@ function Layout({ children }: LayoutProps) {
         {/* Bottom buttons */}
         <div className="flex gap-2 mt-8">
           <button
+            onClick={() => setSidebarVisible(!sidebarVisible)}
+            className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors"
+            title="Toggle Sidebar (⌘E)"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+          
+          <button
             onClick={() => setShowSettings(!showSettings)}
             className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors"
             title="Settings (⌘S)"
@@ -340,9 +358,24 @@ function Layout({ children }: LayoutProps) {
       </div>
 
       {/* Main content */}
-      <main className="flex-1 p-8">
+      <main className={`flex-1 p-8 transition-all duration-300 ease-in-out ${
+        sidebarVisible ? 'ml-64' : 'ml-0'
+      }`}>
         {children}
       </main>
+
+      {/* Floating sidebar toggle when sidebar is hidden */}
+      {!sidebarVisible && (
+        <button
+          onClick={() => setSidebarVisible(true)}
+          className="fixed left-4 top-4 w-10 h-10 rounded-full border border-gray-300 flex items-center justify-center bg-white text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-all duration-300 shadow-lg z-40"
+          title="Show Sidebar (⌘E)"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
+      )}
 
       {/* Controls Modal */}
       {showControls && (
@@ -372,6 +405,10 @@ function Layout({ children }: LayoutProps) {
               </div>
               
               <div className="font-semibold text-gray-900 mt-4 mb-2">Quick Actions</div>
+              <div className="flex justify-between pl-4">
+                <span className="font-medium">Toggle Sidebar:</span>
+                <span>⌘ Cmd + E</span>
+              </div>
               <div className="flex justify-between pl-4">
                 <span className="font-medium">Open Settings:</span>
                 <span>⌘ Cmd + S</span>
