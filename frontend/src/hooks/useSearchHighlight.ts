@@ -22,6 +22,43 @@ export function useSearchHighlight() {
       }, 100);
     }
   }, [location]);
+
+  // Add ESC key handler to clear highlights
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        // Check if any highlights exist
+        const highlights = document.querySelectorAll('.search-highlight');
+        if (highlights.length > 0) {
+          e.preventDefault();
+          e.stopPropagation();
+          clearSearchHighlights();
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown, true);
+    return () => document.removeEventListener('keydown', handleKeyDown, true);
+  }, []);
+}
+
+function clearSearchHighlights() {
+  const highlights = document.querySelectorAll('.search-highlight');
+  
+  highlights.forEach(highlight => {
+    const parent = highlight.parentElement;
+    if (!parent) return;
+    
+    // Get the text content
+    const text = highlight.textContent || '';
+    
+    // Replace the highlight element with a text node
+    const textNode = document.createTextNode(text);
+    parent.replaceChild(textNode, highlight);
+    
+    // Normalize the parent to merge adjacent text nodes
+    parent.normalize();
+  });
 }
 
 function highlightSearchTerms(searchTerm: string) {
