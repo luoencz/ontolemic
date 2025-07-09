@@ -22,7 +22,6 @@ function Layout({ children }: LayoutProps) {
   ];
 
   const projectItems = [
-    { path: '/projects', label: 'All Projects' },
     { path: '/projects/web-dev', label: 'Web Development' },
     { path: '/projects/ai-ml', label: 'AI & Machine Learning' },
     { path: '/projects/open-source', label: 'Open Source' },
@@ -115,17 +114,8 @@ function Layout({ children }: LayoutProps) {
           navigate(projectItem.path);
         } else if (focusedIndex >= 0 && focusedIndex < navItems.length) {
           const item = navItems[focusedIndex];
-          if (item.isDropdown) {
-            const newOpen = !projectsOpen;
-            setProjectsOpen(newOpen);
-            if (newOpen) {
-              setFocusedProjectIndex(0); // Focus first project item when opening
-            } else {
-              setFocusedProjectIndex(-1);
-            }
-          } else {
-            navigate(item.path);
-          }
+          // Always navigate, even for dropdown items
+          navigate(item.path);
         }
         break;
 
@@ -152,8 +142,8 @@ function Layout({ children }: LayoutProps) {
     if (currentIndex !== -1) {
       setFocusedIndex(currentIndex);
       
-      // If we're on a project page, also set project focus
-      if (location.pathname.startsWith('/projects')) {
+      // If we're on a project sub-page, also set project focus
+      if (location.pathname.startsWith('/projects/')) {
         setProjectsOpen(true);
         const currentProjectIndex = projectItems.findIndex(item => item.path === location.pathname);
         if (currentProjectIndex !== -1) {
@@ -178,8 +168,7 @@ function Layout({ children }: LayoutProps) {
         {/* Keyboard navigation hint */}
         <div className="text-xs text-gray-400 mb-4 p-2 border border-gray-200 rounded">
           <div>Navigate: ↑↓ arrows</div>
-          <div>Projects: → open, ← close</div>
-          <div>Sub-items: ↓ to enter, ↑↓ within</div>
+          <div>Projects: → expand, ← close</div>
           <div>Select: Enter</div>
         </div>
 
@@ -188,32 +177,47 @@ function Layout({ children }: LayoutProps) {
             <div key={path}>
               {isDropdown ? (
                 <div className="relative">
-                  <button
-                    onClick={() => setProjectsOpen(!projectsOpen)}
-                    className={`flex items-center justify-between w-full py-1 text-sm hover:underline text-left select-none focus:outline-none focus:ring-0 focus:border-none active:outline-none active:ring-0 active:border-none ${
-                      location.pathname.startsWith('/projects') ? 'font-bold' : ''
+                  <Link
+                    to={path}
+                    onClick={(e) => {
+                      // Allow navigation but don't auto-expand
+                      if (e.currentTarget === e.target) {
+                        navigate(path);
+                      }
+                    }}
+                    className={`flex items-center justify-between w-full py-1 text-sm hover:underline text-left select-none ${
+                      location.pathname === '/projects' ? 'font-bold' : ''
                     } ${
                       focusedIndex === index && focusedProjectIndex === -1 ? 'bg-gray-100 px-2 -mx-2 rounded' : ''
                     }`}
-                    style={{ 
-                      outline: 'none',
-                      border: 'none',
-                      boxShadow: 'none',
-                      WebkitTapHighlightColor: 'transparent'
-                    }}
                   >
                     <span>Projects</span>
-                    <svg 
-                      className={`w-3 h-3 ml-2 transition-transform duration-200 ${
-                        projectsOpen ? 'rotate-180' : 'rotate-0'
-                      }`}
-                      fill="none" 
-                      stroke="currentColor" 
-                      viewBox="0 0 24 24"
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setProjectsOpen(!projectsOpen);
+                      }}
+                      className="ml-2 p-0.5 -m-0.5 focus:outline-none"
+                      style={{ 
+                        outline: 'none',
+                        border: 'none',
+                        boxShadow: 'none',
+                        WebkitTapHighlightColor: 'transparent'
+                      }}
                     >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </button>
+                      <svg 
+                        className={`w-3 h-3 transition-transform duration-200 ${
+                          projectsOpen ? 'rotate-180' : 'rotate-0'
+                        }`}
+                        fill="none" 
+                        stroke="currentColor" 
+                        viewBox="0 0 24 24"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+                  </Link>
                   
                   {projectsOpen && (
                     <div className="ml-4 mt-1 space-y-1">
