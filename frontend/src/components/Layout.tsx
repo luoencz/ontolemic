@@ -12,6 +12,9 @@ function Layout({ children }: LayoutProps) {
   const [projectsOpen, setProjectsOpen] = useState(false);
   const [focusedIndex, setFocusedIndex] = useState(-1);
   const [focusedProjectIndex, setFocusedProjectIndex] = useState(-1);
+  const [showControls, setShowControls] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [soundEnabled, setSoundEnabled] = useState(true);
   const { quote, loading } = useRandomQuote();
 
   const navItems = [
@@ -30,6 +33,45 @@ function Layout({ children }: LayoutProps) {
 
   const handleKeyDown = useCallback((event: KeyboardEvent) => {
     if (event.target !== document.body) return; // Only handle when no input is focused
+
+    // Handle modal shortcuts with Command/Ctrl key
+    if ((event.metaKey || event.ctrlKey) && !showControls && !showSettings) {
+      switch (event.key.toLowerCase()) {
+        case 's':
+          event.preventDefault();
+          setShowSettings(true);
+          return;
+        
+        case 'm':
+          event.preventDefault();
+          setSoundEnabled(prev => !prev);
+          return;
+        
+        case '/': // Handle both / and ? (Shift+/)
+        case '?':
+          event.preventDefault();
+          setShowControls(true);
+          return;
+      }
+    }
+
+    // Handle ESC to close modals
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      if (showControls || showSettings) {
+        setShowControls(false);
+        setShowSettings(false);
+        return;
+      }
+      // Original ESC behavior when no modals are open
+      setProjectsOpen(false);
+      setFocusedIndex(-1);
+      setFocusedProjectIndex(-1);
+      return;
+    }
+
+    // Don't process navigation keys when modals are open
+    if (showControls || showSettings) return;
 
     switch (event.key) {
       case 'ArrowUp':
@@ -118,15 +160,26 @@ function Layout({ children }: LayoutProps) {
           navigate(item.path);
         }
         break;
-
-      case 'Escape':
-        event.preventDefault();
-        setProjectsOpen(false);
-        setFocusedIndex(-1);
-        setFocusedProjectIndex(-1);
-        break;
     }
-  }, [focusedIndex, focusedProjectIndex, navItems.length, projectItems.length, projectsOpen, navigate]);
+  }, [focusedIndex, focusedProjectIndex, navItems.length, projectItems.length, projectsOpen, navigate, showControls, showSettings]);
+
+  // Close controls when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (showControls && target.classList.contains('modal-backdrop')) {
+        setShowControls(false);
+      }
+      if (showSettings && target.classList.contains('modal-backdrop')) {
+        setShowSettings(false);
+      }
+    };
+
+    if (showControls || showSettings) {
+      document.addEventListener('click', handleClickOutside);
+      return () => document.removeEventListener('click', handleClickOutside);
+    }
+  }, [showControls, showSettings]);
 
   useEffect(() => {
     document.addEventListener('keydown', handleKeyDown);
@@ -156,7 +209,7 @@ function Layout({ children }: LayoutProps) {
   return (
     <div className="flex min-h-screen">
       {/* Sidebar */}
-      <div className="w-64 p-8">
+      <div className="w-64 p-8 flex flex-col">
         <Link to="/" className="text-2xl font-normal hover:underline">
           Inner Cosmos
         </Link>
@@ -165,14 +218,7 @@ function Layout({ children }: LayoutProps) {
           {loading ? 'this, too, is it' : quote}
         </p>
 
-        {/* Keyboard navigation hint */}
-        <div className="text-xs text-gray-400 mb-4 p-2 border border-gray-200 rounded">
-          <div>Navigate: ↑↓ arrows</div>
-          <div>Projects: → expand, ← close</div>
-          <div>Select: Enter</div>
-        </div>
-
-        <nav className="space-y-2">
+        <nav className="space-y-2 flex-1">
           {navItems.map(({ path, label, isDropdown }, index) => (
             <div key={path}>
               {isDropdown ? (
@@ -252,12 +298,155 @@ function Layout({ children }: LayoutProps) {
             </div>
           ))}
         </nav>
+
+        {/* Bottom buttons */}
+        <div className="flex gap-2 mt-8">
+          <button
+            onClick={() => setShowSettings(!showSettings)}
+            className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors"
+            title="Settings (⌘S)"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+          </button>
+          
+          <button
+            onClick={() => setSoundEnabled(!soundEnabled)}
+            className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors"
+            title={soundEnabled ? "Sound On (⌘M or ⌘⇧M)" : "Sound Off (⌘M or ⌘⇧M)"}
+          >
+            {soundEnabled ? (
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+              </svg>
+            ) : (
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2" />
+              </svg>
+            )}
+          </button>
+          
+          <button
+            onClick={() => setShowControls(!showControls)}
+            className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors text-sm font-medium"
+            title="Show keyboard controls (⌘?)"
+          >
+            ?
+          </button>
+        </div>
       </div>
 
       {/* Main content */}
       <main className="flex-1 p-8">
         {children}
       </main>
+
+      {/* Controls Modal */}
+      {showControls && (
+        <div 
+          className="modal-backdrop fixed inset-0 z-50 flex items-center justify-center"
+          style={{ 
+            backgroundColor: 'rgba(0, 0, 0, 0.3)',
+            backdropFilter: 'blur(5px)',
+            WebkitBackdropFilter: 'blur(5px)' // Safari support
+          }}
+        >
+          <div className="bg-white rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl">
+            <h2 className="text-xl font-semibold mb-4">Keyboard Controls</h2>
+            <div className="space-y-2 text-sm text-gray-700">
+              <div className="font-semibold text-gray-900 mb-2">Navigation</div>
+              <div className="flex justify-between pl-4">
+                <span className="font-medium">Navigate:</span>
+                <span>↑↓ arrow keys</span>
+              </div>
+              <div className="flex justify-between pl-4">
+                <span className="font-medium">Expand/Collapse Projects:</span>
+                <span>→ / ← arrow keys</span>
+              </div>
+              <div className="flex justify-between pl-4">
+                <span className="font-medium">Select:</span>
+                <span>Enter key</span>
+              </div>
+              
+              <div className="font-semibold text-gray-900 mt-4 mb-2">Quick Actions</div>
+              <div className="flex justify-between pl-4">
+                <span className="font-medium">Open Settings:</span>
+                <span>⌘ Cmd + S</span>
+              </div>
+              <div className="flex justify-between pl-4">
+                <span className="font-medium">Toggle Sound:</span>
+                <span>⌘ Cmd + M</span>
+              </div>
+              <div className="flex justify-between pl-4">
+                <span className="font-medium">Show Help:</span>
+                <span>⌘ Cmd + ?</span>
+              </div>
+              <div className="flex justify-between pl-4">
+                <span className="font-medium">Close modals:</span>
+                <span>Escape key</span>
+              </div>
+              
+              <div className="text-xs text-gray-500 mt-3 pl-4">
+                <span className="font-medium">Note:</span> Hold Shift with shortcuts to avoid system conflicts (e.g., ⌘⇧M instead of ⌘M)
+              </div>
+            </div>
+            <button
+              onClick={() => setShowControls(false)}
+              className="mt-6 w-full py-2 text-sm text-gray-600 hover:text-gray-800 transition-colors"
+            >
+              Click anywhere to close
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Settings Modal */}
+      {showSettings && (
+        <div 
+          className="modal-backdrop fixed inset-0 z-50 flex items-center justify-center"
+          style={{ 
+            backgroundColor: 'rgba(0, 0, 0, 0.3)',
+            backdropFilter: 'blur(5px)',
+            WebkitBackdropFilter: 'blur(5px)' // Safari support
+          }}
+        >
+          <div className="bg-white rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl">
+            <h2 className="text-xl font-semibold mb-4">Settings</h2>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">Dark Mode</span>
+                <button className="w-12 h-6 bg-gray-200 rounded-full relative transition-colors">
+                  <div className="w-5 h-5 bg-white rounded-full absolute top-0.5 left-0.5 transition-transform" />
+                </button>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">Animations</span>
+                <button className="w-12 h-6 bg-blue-500 rounded-full relative transition-colors">
+                  <div className="w-5 h-5 bg-white rounded-full absolute top-0.5 right-0.5 transition-transform" />
+                </button>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">Sound Effects</span>
+                <button 
+                  onClick={() => setSoundEnabled(!soundEnabled)}
+                  className={`w-12 h-6 rounded-full relative transition-colors ${soundEnabled ? 'bg-blue-500' : 'bg-gray-200'}`}
+                >
+                  <div className={`w-5 h-5 bg-white rounded-full absolute top-0.5 transition-transform ${soundEnabled ? 'right-0.5' : 'left-0.5'}`} />
+                </button>
+              </div>
+            </div>
+            <button
+              onClick={() => setShowSettings(false)}
+              className="mt-6 w-full py-2 text-sm text-gray-600 hover:text-gray-800 transition-colors"
+            >
+              Click anywhere to close
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
