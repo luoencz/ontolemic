@@ -44,6 +44,16 @@ function Layout({ children }: LayoutProps) {
             // Move up within project items
             setFocusedProjectIndex(prev => prev - 1);
           }
+        } else if (focusedIndex === 3) {
+          // At Contact, check if projects are open
+          if (projectsOpen) {
+            // Jump to last project item
+            setFocusedIndex(2); // Projects index
+            setFocusedProjectIndex(projectItems.length - 1);
+          } else {
+            // Projects closed, go to Projects button
+            setFocusedIndex(2);
+          }
         } else {
           // Navigate main nav items
           setFocusedProjectIndex(-1);
