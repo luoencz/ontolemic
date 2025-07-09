@@ -11,6 +11,7 @@ function Layout({ children }: LayoutProps) {
   const navigate = useNavigate();
   const [projectsOpen, setProjectsOpen] = useState(false);
   const [focusedIndex, setFocusedIndex] = useState(-1);
+  const [focusedProjectIndex, setFocusedProjectIndex] = useState(-1);
   const { quote, loading } = useRandomQuote();
 
   const navItems = [
@@ -34,24 +35,44 @@ function Layout({ children }: LayoutProps) {
     switch (event.key) {
       case 'ArrowUp':
         event.preventDefault();
-        setFocusedIndex(prev => {
-          const newIndex = prev <= 0 ? navItems.length - 1 : prev - 1;
-          return newIndex;
-        });
+        if (projectsOpen && focusedIndex === 2 && focusedProjectIndex >= 0) {
+          // Navigate within project items
+          setFocusedProjectIndex(prev => prev <= 0 ? projectItems.length - 1 : prev - 1);
+        } else {
+          // Navigate main nav items
+          setFocusedProjectIndex(-1);
+          setFocusedIndex(prev => {
+            const newIndex = prev <= 0 ? navItems.length - 1 : prev - 1;
+            return newIndex;
+          });
+        }
         break;
 
       case 'ArrowDown':
         event.preventDefault();
-        setFocusedIndex(prev => {
-          const newIndex = prev >= navItems.length - 1 ? 0 : prev + 1;
-          return newIndex;
-        });
+        if (projectsOpen && focusedIndex === 2 && focusedProjectIndex >= 0) {
+          // Navigate within project items
+          setFocusedProjectIndex(prev => prev >= projectItems.length - 1 ? 0 : prev + 1);
+        } else if (projectsOpen && focusedIndex === 2 && focusedProjectIndex === -1) {
+          // Move into project items from Projects button
+          setFocusedProjectIndex(0);
+        } else {
+          // Navigate main nav items
+          setFocusedProjectIndex(-1);
+          setFocusedIndex(prev => {
+            const newIndex = prev >= navItems.length - 1 ? 0 : prev + 1;
+            return newIndex;
+          });
+        }
         break;
 
       case 'ArrowRight':
         event.preventDefault();
         if (focusedIndex === 2 && navItems[2].isDropdown) { // Projects index
           setProjectsOpen(true);
+          if (!projectsOpen) {
+            setFocusedProjectIndex(0); // Focus first project item when opening
+          }
         }
         break;
 
@@ -59,15 +80,26 @@ function Layout({ children }: LayoutProps) {
         event.preventDefault();
         if (focusedIndex === 2 && navItems[2].isDropdown) { // Projects index
           setProjectsOpen(false);
+          setFocusedProjectIndex(-1);
         }
         break;
 
       case 'Enter':
         event.preventDefault();
-        if (focusedIndex >= 0 && focusedIndex < navItems.length) {
+        if (focusedProjectIndex >= 0 && projectsOpen) {
+          // Navigate to selected project item
+          const projectItem = projectItems[focusedProjectIndex];
+          navigate(projectItem.path);
+        } else if (focusedIndex >= 0 && focusedIndex < navItems.length) {
           const item = navItems[focusedIndex];
           if (item.isDropdown) {
-            setProjectsOpen(!projectsOpen);
+            const newOpen = !projectsOpen;
+            setProjectsOpen(newOpen);
+            if (newOpen) {
+              setFocusedProjectIndex(0); // Focus first project item when opening
+            } else {
+              setFocusedProjectIndex(-1);
+            }
           } else {
             navigate(item.path);
           }
@@ -78,9 +110,10 @@ function Layout({ children }: LayoutProps) {
         event.preventDefault();
         setProjectsOpen(false);
         setFocusedIndex(-1);
+        setFocusedProjectIndex(-1);
         break;
     }
-  }, [focusedIndex, navItems.length, projectsOpen, navigate]);
+  }, [focusedIndex, focusedProjectIndex, navItems.length, projectItems.length, projectsOpen, navigate]);
 
   useEffect(() => {
     document.addEventListener('keydown', handleKeyDown);
@@ -95,6 +128,15 @@ function Layout({ children }: LayoutProps) {
     );
     if (currentIndex !== -1) {
       setFocusedIndex(currentIndex);
+      
+      // If we're on a project page, also set project focus
+      if (location.pathname.startsWith('/projects')) {
+        setProjectsOpen(true);
+        const currentProjectIndex = projectItems.findIndex(item => item.path === location.pathname);
+        if (currentProjectIndex !== -1) {
+          setFocusedProjectIndex(currentProjectIndex);
+        }
+      }
     }
   }, [location.pathname]);
 
@@ -114,6 +156,7 @@ function Layout({ children }: LayoutProps) {
         <div className="text-xs text-gray-400 mb-4 p-2 border border-gray-200 rounded">
           <div>Navigate: ↑↓ arrows</div>
           <div>Projects: → open, ← close</div>
+          <div>Sub-items: ↓ to enter, ↑↓ within</div>
           <div>Select: Enter</div>
         </div>
 
@@ -127,7 +170,7 @@ function Layout({ children }: LayoutProps) {
                     className={`flex items-center justify-between w-full py-1 text-sm hover:underline text-left select-none focus:outline-none focus:ring-0 focus:border-none active:outline-none active:ring-0 active:border-none ${
                       location.pathname.startsWith('/projects') ? 'font-bold' : ''
                     } ${
-                      focusedIndex === index ? 'bg-gray-100 px-2 -mx-2 rounded' : ''
+                      focusedIndex === index && focusedProjectIndex === -1 ? 'bg-gray-100 px-2 -mx-2 rounded' : ''
                     }`}
                     style={{ 
                       outline: 'none',
@@ -151,12 +194,14 @@ function Layout({ children }: LayoutProps) {
                   
                   {projectsOpen && (
                     <div className="ml-4 mt-1 space-y-1">
-                      {projectItems.map(({ path: projectPath, label: projectLabel }) => (
+                      {projectItems.map(({ path: projectPath, label: projectLabel }, projectIndex) => (
                         <Link
                           key={projectPath}
                           to={projectPath}
                           className={`block py-1 text-sm hover:underline ${
                             location.pathname === projectPath ? 'font-bold' : 'text-gray-600'
+                          } ${
+                            focusedProjectIndex === projectIndex ? 'bg-gray-100 px-2 -mx-2 rounded' : ''
                           }`}
                         >
                           {projectLabel}
