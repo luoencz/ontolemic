@@ -48,6 +48,10 @@ function Layout({ children }: LayoutProps) {
           const focusableElements = mainElement.querySelectorAll('a, button, [tabindex]:not([tabindex="-1"])');
           if (focusableElements.length > 0) {
             setFocusArea('main');
+            // If no previously focused element, focus the first one
+            if (mainFocusedIndex === -1) {
+              setMainFocusedIndex(0);
+            }
           }
           // If no focusable elements, stay in sidebar
         }
