@@ -53,9 +53,15 @@ function Layout({ children }: LayoutProps) {
           <div className="relative">
             <button
               onClick={() => setProjectsOpen(!projectsOpen)}
-              className={`flex items-center justify-between w-full py-1 text-sm hover:underline text-left select-none focus:outline-none ${
+              className={`flex items-center justify-between w-full py-1 text-sm hover:underline text-left select-none focus:outline-none focus:ring-0 focus:border-none active:outline-none active:ring-0 active:border-none ${
                 location.pathname.startsWith('/projects') ? 'font-bold' : ''
               }`}
+              style={{ 
+                outline: 'none',
+                border: 'none',
+                boxShadow: 'none',
+                WebkitTapHighlightColor: 'transparent'
+              }}
             >
               <span>Projects</span>
               <svg 
@@ -76,7 +82,6 @@ function Layout({ children }: LayoutProps) {
                   <Link
                     key={path}
                     to={path}
-                    onClick={() => setProjectsOpen(false)}
                     className={`block py-1 text-sm hover:underline ${
                       location.pathname === path ? 'font-bold' : 'text-gray-600'
                     }`}
