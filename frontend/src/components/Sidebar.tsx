@@ -7,7 +7,6 @@ import { useRandomQuote } from '../hooks/useRandomQuote';
 interface SidebarProps {
   focusedIndex: number;
   focusedProjectIndex: number;
-  backstageFocused: boolean;
   bottomButtonFocused: number;
 }
 
@@ -25,7 +24,7 @@ export const projectItems = [
   { path: '/projects/research', label: 'Research Papers' },
 ];
 
-function Sidebar({ focusedIndex, focusedProjectIndex, backstageFocused, bottomButtonFocused }: SidebarProps) {
+function Sidebar({ focusedIndex, focusedProjectIndex, bottomButtonFocused }: SidebarProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
@@ -125,18 +124,8 @@ function Sidebar({ focusedIndex, focusedProjectIndex, backstageFocused, bottomBu
         ))}
       </nav>
 
-      {/* Backstage button */}
-      <Link
-        to="/backstage"
-        className={`block w-full py-1.5 px-4 text-center !text-white bg-black hover:bg-gray-800 transition-colors mb-3 rounded text-sm ${
-          backstageFocused ? 'ring-2 ring-gray-400 ring-offset-2' : ''
-        }`}
-      >
-        Backstage
-      </Link>
-
       {/* Bottom buttons */}
-      <div className="flex justify-between">
+      <div className="flex justify-between mt-8">
         <button
           onClick={() => dispatch(toggleSidebar())}
           className={`w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors ${

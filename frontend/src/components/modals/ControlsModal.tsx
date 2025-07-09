@@ -54,6 +54,10 @@ function ControlsModal() {
           
           <div className="font-semibold text-gray-900 mt-4 mb-2">Quick Actions</div>
           <div className="flex justify-between pl-4">
+            <span className="font-medium">Search:</span>
+            <span>⌘ Cmd + F</span>
+          </div>
+          <div className="flex justify-between pl-4">
             <span className="font-medium">Toggle Sidebar:</span>
             <span>⌘ Cmd + E</span>
           </div>

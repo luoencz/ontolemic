@@ -8,7 +8,6 @@ import WebDev from './pages/projects/WebDev';
 import AIML from './pages/projects/AIML';
 import OpenSource from './pages/projects/OpenSource';
 import Research from './pages/projects/Research';
-import { Backstage } from './pages/Backstage';
 
 function App() {
   return (
@@ -19,7 +18,6 @@ function App() {
           <Route path="/about" element={<About />} />
           <Route path="/blog" element={<Home />} />
           <Route path="/contact" element={<Contact />} />
-          <Route path="/backstage" element={<Backstage />} />
           <Route path="/projects" element={<Projects />} />
           <Route path="/projects/web-dev" element={<WebDev />} />
           <Route path="/projects/ai-ml" element={<AIML />} />
