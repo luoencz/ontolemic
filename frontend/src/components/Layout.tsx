@@ -16,6 +16,8 @@ function Layout({ children }: LayoutProps) {
   const [showSettings, setShowSettings] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [sidebarVisible, setSidebarVisible] = useState(true);
+  const [focusArea, setFocusArea] = useState<'sidebar' | 'main'>('sidebar'); // Track which area has focus
+  const [mainFocusedIndex, setMainFocusedIndex] = useState(-1); // Track focused element in main area
   const { quote, loading } = useRandomQuote();
 
   const navItems = [
@@ -34,6 +36,14 @@ function Layout({ children }: LayoutProps) {
 
   const handleKeyDown = useCallback((event: KeyboardEvent) => {
     if (event.target !== document.body) return; // Only handle when no input is focused
+
+    // Handle Tab key to switch focus areas
+    if (event.key === 'Tab') {
+      event.preventDefault();
+      setFocusArea(prev => prev === 'sidebar' ? 'main' : 'sidebar');
+      // Don't reset focus indices - remember position when switching back
+      return;
+    }
 
     // Handle modal shortcuts with Command/Ctrl key
     if ((event.metaKey || event.ctrlKey) && !showControls && !showSettings) {
@@ -78,6 +88,54 @@ function Layout({ children }: LayoutProps) {
 
     // Don't process navigation keys when modals are open
     if (showControls || showSettings) return;
+
+    // Handle navigation based on focus area
+    if (focusArea === 'main') {
+      // Navigation in main content area
+      const mainElement = document.querySelector('main');
+      if (!mainElement) return;
+      
+      const focusableElements = mainElement.querySelectorAll('a, button, [tabindex]:not([tabindex="-1"])');
+      const focusableArray = Array.from(focusableElements);
+      
+      switch (event.key) {
+        case 'ArrowUp':
+        case 'ArrowLeft':
+          event.preventDefault();
+          if (focusableArray.length > 0) {
+            if (mainFocusedIndex <= 0) {
+              setMainFocusedIndex(focusableArray.length - 1);
+            } else {
+              setMainFocusedIndex(mainFocusedIndex - 1);
+            }
+          }
+          break;
+          
+        case 'ArrowDown':
+        case 'ArrowRight':
+          event.preventDefault();
+          if (focusableArray.length > 0) {
+            if (mainFocusedIndex >= focusableArray.length - 1) {
+              setMainFocusedIndex(0);
+            } else {
+              setMainFocusedIndex(mainFocusedIndex + 1);
+            }
+          }
+          break;
+          
+        case 'Enter':
+          event.preventDefault();
+          if (mainFocusedIndex >= 0 && mainFocusedIndex < focusableArray.length) {
+            const element = focusableArray[mainFocusedIndex] as HTMLElement;
+            element.click();
+          }
+          break;
+      }
+      return;
+    }
+
+    // Only process navigation keys if focus is on sidebar
+    if (focusArea !== 'sidebar') return;
 
     switch (event.key) {
       case 'ArrowUp':
@@ -167,7 +225,37 @@ function Layout({ children }: LayoutProps) {
         }
         break;
     }
-  }, [focusedIndex, focusedProjectIndex, navItems.length, projectItems.length, projectsOpen, navigate, showControls, showSettings]);
+  }, [focusedIndex, focusedProjectIndex, navItems.length, projectItems.length, projectsOpen, navigate, showControls, showSettings, focusArea, mainFocusedIndex]);
+
+  // Effect to apply focus styling to main area elements
+  useEffect(() => {
+    const mainElement = document.querySelector('main');
+    if (!mainElement) return;
+    
+    const focusableElements = mainElement.querySelectorAll('a, button, [tabindex]:not([tabindex="-1"])');
+    
+    if (focusArea === 'main') {
+      focusableElements.forEach((element, index) => {
+        if (index === mainFocusedIndex) {
+          element.classList.add('ring-2', 'ring-black', 'ring-offset-2', 'rounded');
+        } else {
+          element.classList.remove('ring-2', 'ring-black', 'ring-offset-2', 'rounded');
+        }
+      });
+    } else {
+      // Clean up all focus styling when switching to sidebar
+      focusableElements.forEach((element) => {
+        element.classList.remove('ring-2', 'ring-black', 'ring-offset-2', 'rounded');
+      });
+    }
+    
+    // Cleanup on unmount
+    return () => {
+      focusableElements.forEach((element) => {
+        element.classList.remove('ring-2', 'ring-black', 'ring-offset-2', 'rounded');
+      });
+    };
+  }, [mainFocusedIndex, focusArea]);
 
   // Close controls when clicking outside
   useEffect(() => {
@@ -364,17 +452,23 @@ function Layout({ children }: LayoutProps) {
         {children}
       </main>
 
-      {/* Floating sidebar toggle when sidebar is hidden */}
+      {/* Hover zone and floating sidebar toggle when sidebar is hidden */}
       {!sidebarVisible && (
-        <button
-          onClick={() => setSidebarVisible(true)}
-          className="fixed left-4 top-4 w-10 h-10 rounded-full border border-gray-300 flex items-center justify-center bg-white text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-all duration-300 shadow-lg z-40"
-          title="Show Sidebar (⌘E)"
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-          </svg>
-        </button>
+        <>
+          {/* Invisible hover zone on the left edge */}
+          <div className="fixed left-0 top-0 w-8 h-full z-40 group">
+            {/* Button appears on hover */}
+            <button
+              onClick={() => setSidebarVisible(true)}
+              className="fixed left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full border border-gray-300 flex items-center justify-center bg-white text-gray-500 hover:bg-gray-100 hover:text-gray-700 shadow-lg opacity-0 group-hover:opacity-100 transition-all duration-300 transform group-hover:translate-x-0 -translate-x-full"
+              title="Show Sidebar (⌘E)"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          </div>
+        </>
       )}
 
       {/* Controls Modal */}
@@ -392,8 +486,12 @@ function Layout({ children }: LayoutProps) {
             <div className="space-y-2 text-sm text-gray-700">
               <div className="font-semibold text-gray-900 mb-2">Navigation</div>
               <div className="flex justify-between pl-4">
-                <span className="font-medium">Navigate:</span>
-                <span>↑↓ arrow keys</span>
+                <span className="font-medium">Switch Focus Area:</span>
+                <span>Tab key</span>
+              </div>
+              <div className="flex justify-between pl-4">
+                <span className="font-medium">Navigate items:</span>
+                <span>↑↓ ←→ arrow keys</span>
               </div>
               <div className="flex justify-between pl-4">
                 <span className="font-medium">Expand/Collapse Projects:</span>
