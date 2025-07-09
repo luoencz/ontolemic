@@ -40,7 +40,22 @@ function Layout({ children }: LayoutProps) {
     // Handle Tab key to switch focus areas
     if (event.key === 'Tab') {
       event.preventDefault();
-      setFocusArea(prev => prev === 'sidebar' ? 'main' : 'sidebar');
+      
+      // Check if main area has focusable elements before switching
+      if (focusArea === 'sidebar') {
+        const mainElement = document.querySelector('main');
+        if (mainElement) {
+          const focusableElements = mainElement.querySelectorAll('a, button, [tabindex]:not([tabindex="-1"])');
+          if (focusableElements.length > 0) {
+            setFocusArea('main');
+          }
+          // If no focusable elements, stay in sidebar
+        }
+      } else {
+        // Always allow switching back to sidebar
+        setFocusArea('sidebar');
+      }
+      
       // Don't reset focus indices - remember position when switching back
       return;
     }
