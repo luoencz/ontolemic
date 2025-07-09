@@ -2,6 +2,11 @@
 
 A minimal, powerful personal website enabling on-demand Python code execution with React/TypeScript frontend.
 
+## Documentation
+
+- **[Website Architecture Guide](docs/WEBSITE_ARCHITECTURE.md)** - Overview of architectural patterns and solutions
+- **[Search Functionality Architecture](docs/SEARCH_ARCHITECTURE.md)** - Deep dive into the search implementation
+
 ## Architecture
 
 - **Frontend**: React + TypeScript + Vite + Redux Toolkit
@@ -98,4 +103,25 @@ The frontend uses a modular component architecture with Redux for state manageme
 
 ### Custom Hooks
 - **useKeyboardNavigation**: Comprehensive keyboard navigation throughout the app
-- **useRandomQuote**: Fetches and displays random quotes in the sidebar 
+- **useRandomQuote**: Fetches and displays random quotes in the sidebar
+
+## Key Features
+
+### Accessibility
+- **Full Keyboard Navigation**: Complete keyboard-only operation with Tab, arrows, and shortcuts
+- **Focus Management**: Visual indicators and logical focus flow
+- **Custom Search**: Override browser search (Cmd+F) with full-text search across all pages
+
+### UI/UX
+- **Minimalist Design**: Clean black and white interface
+- **Smooth Animations**: Subtle transitions and hover effects
+- **Responsive Layout**: Collapsible sidebar with persistent state
+- **Modal System**: Centralized modal management for settings and controls
+
+### Developer Experience
+- **TypeScript**: Full type safety across the codebase
+- **Hot Module Replacement**: Instant updates during development
+- **Redux DevTools**: Debug state changes easily
+- **Modular Architecture**: Clear separation of concerns
+
+For detailed implementation information, see the [documentation](docs/). 
