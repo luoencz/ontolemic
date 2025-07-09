@@ -36,6 +36,13 @@ export function Search({ isOpen, onClose }: SearchProps) {
 
 
 
+  // Restore focus to document body when closing
+  const handleClose = () => {
+    // Return focus to document body to re-enable keyboard navigation
+    document.body.focus();
+    onClose();
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     switch (e.key) {
       case 'ArrowUp':
@@ -58,7 +65,7 @@ export function Search({ isOpen, onClose }: SearchProps) {
         break;
       case 'Escape':
         e.preventDefault();
-        onClose();
+        handleClose();
         break;
     }
   };
@@ -69,7 +76,7 @@ export function Search({ isOpen, onClose }: SearchProps) {
     sessionStorage.setItem('searchIndex', result.index.toString());
     
     navigate(result.pagePath);
-    onClose();
+    handleClose();
   };
 
   return (
@@ -82,7 +89,7 @@ export function Search({ isOpen, onClose }: SearchProps) {
         backdropFilter: 'blur(5px)',
         WebkitBackdropFilter: 'blur(5px)'
       }}
-      onClick={onClose}
+      onClick={handleClose}
     >
       <div 
         ref={containerRef}

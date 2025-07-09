@@ -26,13 +26,15 @@ export function Layout({ children }: LayoutProps) {
       // Override browser search with Cmd+F or Ctrl+F
       if ((e.metaKey || e.ctrlKey) && e.key === 'f') {
         e.preventDefault();
-        setSearchOpen(true);
+        if (!searchOpen) {
+          setSearchOpen(true);
+        }
       }
     };
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  }, [searchOpen]);
 
   return (
     <div className="relative min-h-screen bg-white">

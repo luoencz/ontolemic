@@ -40,7 +40,11 @@ export function useKeyboardNavigation() {
   }, [location.pathname, dispatch]);
 
   const handleKeyDown = useCallback((event: KeyboardEvent) => {
-    if (event.target !== document.body) return;
+    // Don't handle keyboard navigation when typing in input fields or textareas
+    const target = event.target as HTMLElement;
+    if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
+      return;
+    }
 
     // Handle Tab key to switch focus areas
     if (event.key === 'Tab') {
