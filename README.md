@@ -4,9 +4,10 @@ A minimal, powerful personal website enabling on-demand Python code execution wi
 
 ## Architecture
 
-- **Frontend**: React + TypeScript + Vite
+- **Frontend**: React + TypeScript + Vite + Redux Toolkit
 - **Backend**: FastAPI (Python) with uv + pyproject.toml
 - **Communication**: REST API + WebSocket
+- **State Management**: Redux Toolkit for global UI state and navigation
 
 ## Prerequisites
 
@@ -63,10 +64,38 @@ npm run build
 
 ```
 ├── frontend/          # React + TypeScript app
+│   ├── src/
+│   │   ├── components/      # Reusable UI components
+│   │   │   ├── Layout.tsx   # Main layout wrapper
+│   │   │   ├── Sidebar.tsx  # Navigation sidebar
+│   │   │   └── modals/      # Modal components
+│   │   ├── hooks/           # Custom React hooks
+│   │   ├── store/           # Redux store configuration
+│   │   │   ├── slices/      # Redux slices (ui, navigation)
+│   │   │   ├── hooks.ts     # Typed Redux hooks
+│   │   │   └── index.ts     # Store configuration
+│   │   └── pages/           # Page components
 ├── backend/           # FastAPI Python server
 │   ├── pyproject.toml # Python dependencies & config
 │   ├── .venv/         # Virtual environment (auto-created)
 │   └── main.py        # FastAPI application
 ├── shared/            # Shared TypeScript types
 └── package.json       # Root scripts and deps
-``` 
+```
+
+## Frontend Architecture
+
+The frontend uses a modular component architecture with Redux for state management:
+
+### State Management
+- **UI Slice**: Manages global UI state (sidebar visibility, modals, sound settings)
+- **Navigation Slice**: Handles navigation state (dropdown menus, focus areas)
+
+### Key Components
+- **Layout**: Main layout wrapper that orchestrates the app structure
+- **Sidebar**: Navigation component with keyboard navigation support
+- **Modals**: Reusable modal components for settings and controls
+
+### Custom Hooks
+- **useKeyboardNavigation**: Comprehensive keyboard navigation throughout the app
+- **useRandomQuote**: Fetches and displays random quotes in the sidebar 
