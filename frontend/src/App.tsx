@@ -3,6 +3,11 @@ import Layout from './components/Layout';
 import Home from './pages/Home';
 import About from './pages/About';
 import Contact from './pages/Contact';
+import Projects from './pages/Projects';
+import WebDev from './pages/projects/WebDev';
+import AIML from './pages/projects/AIML';
+import OpenSource from './pages/projects/OpenSource';
+import Research from './pages/projects/Research';
 
 function App() {
   return (
@@ -12,11 +17,12 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/about" element={<About />} />
           <Route path="/blog" element={<Home />} />
-          <Route path="/projects" element={<Home />} />
-          <Route path="/discord" element={<Contact />} />
-          <Route path="/twitter" element={<Contact />} />
           <Route path="/contact" element={<Contact />} />
-          <Route path="/archive" element={<Home />} />
+          <Route path="/projects" element={<Projects />} />
+          <Route path="/projects/web-dev" element={<WebDev />} />
+          <Route path="/projects/ai-ml" element={<AIML />} />
+          <Route path="/projects/open-source" element={<OpenSource />} />
+          <Route path="/projects/research" element={<Research />} />
         </Routes>
       </Layout>
     </Router>

@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import { ReactNode, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 
 interface LayoutProps {
@@ -7,15 +7,20 @@ interface LayoutProps {
 
 function Layout({ children }: LayoutProps) {
   const location = useLocation();
+  const [projectsOpen, setProjectsOpen] = useState(false);
 
   const navItems = [
     { path: '/about', label: 'About' },
     { path: '/blog', label: 'Blog and Research' },
-    { path: '/projects', label: 'Projects' },
-    { path: '/discord', label: 'Discord' },
-    { path: '/twitter', label: 'Twitter' },
     { path: '/contact', label: 'Contact' },
-    { path: '/archive', label: 'Post Archive' },
+  ];
+
+  const projectItems = [
+    { path: '/projects', label: 'All Projects' },
+    { path: '/projects/web-dev', label: 'Web Development' },
+    { path: '/projects/ai-ml', label: 'AI & Machine Learning' },
+    { path: '/projects/open-source', label: 'Open Source' },
+    { path: '/projects/research', label: 'Research Papers' },
   ];
 
   return (
@@ -43,6 +48,38 @@ function Layout({ children }: LayoutProps) {
               </Link>
             </div>
           ))}
+          
+          {/* Projects dropdown */}
+          <div className="relative">
+            <button
+              onClick={() => setProjectsOpen(!projectsOpen)}
+              onMouseEnter={() => setProjectsOpen(true)}
+              className={`block py-1 text-sm hover:underline text-left w-full ${
+                location.pathname.startsWith('/projects') ? 'font-bold' : ''
+              }`}
+            >
+              Projects
+            </button>
+            
+            {projectsOpen && (
+              <div 
+                className="ml-4 mt-1 space-y-1"
+                onMouseLeave={() => setProjectsOpen(false)}
+              >
+                {projectItems.map(({ path, label }) => (
+                  <Link
+                    key={path}
+                    to={path}
+                    className={`block py-1 text-sm hover:underline ${
+                      location.pathname === path ? 'font-bold' : 'text-gray-600'
+                    }`}
+                  >
+                    {label}
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
         </nav>
       </div>
 
