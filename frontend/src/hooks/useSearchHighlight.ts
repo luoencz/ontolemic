@@ -8,10 +8,10 @@ export function useSearchHighlight() {
     const searchTerm = sessionStorage.getItem('searchTerm');
     const searchIndex = sessionStorage.getItem('searchIndex');
     
-    if (searchTerm && searchIndex) {
+    if (searchTerm) {
       // Small delay to ensure page is rendered
       setTimeout(() => {
-        highlightSpecificOccurrence(searchTerm, parseInt(searchIndex));
+        highlightSearchTerm(searchTerm);
         
         // Clear the session storage after use
         sessionStorage.removeItem('searchTerm');
@@ -58,10 +58,13 @@ function clearSearchHighlights() {
   });
 }
 
-function highlightSpecificOccurrence(searchTerm: string, targetIndex: number) {
-  // First, find the occurrence in the full document to match the search index
-  const fullTextWalker = document.createTreeWalker(
-    document.body,
+function highlightSearchTerm(searchTerm: string) {
+  // Only search within the main content area
+  const mainElement = document.querySelector('main');
+  if (!mainElement) return;
+
+  const walker = document.createTreeWalker(
+    mainElement,
     NodeFilter.SHOW_TEXT,
     {
       acceptNode: (node) => {
@@ -74,63 +77,53 @@ function highlightSpecificOccurrence(searchTerm: string, targetIndex: number) {
     }
   );
 
-  let currentPosition = 0;
+  const textNodes: Text[] = [];
   let node: Node | null;
-  const lowerSearchTerm = searchTerm.toLowerCase();
   
-  while (node = fullTextWalker.nextNode()) {
-    const text = node.textContent || '';
-    const lowerText = text.toLowerCase();
-    let searchPosition = 0;
-    
-    // Find all occurrences in this text node
-    while (true) {
-      const position = lowerText.indexOf(lowerSearchTerm, searchPosition);
-      if (position === -1) break;
-      
-      // Check if this is the target occurrence by index
-      if (currentPosition + position === targetIndex) {
-        // Check if this node is within the main element
-        const mainElement = document.querySelector('main');
-        if (mainElement && mainElement.contains(node)) {
-          highlightTextInNode(node as Text, position, searchTerm.length);
-          scrollToHighlight();
-        }
-        return;
-      }
-      
-      searchPosition = position + 1;
+  // Collect all text nodes that contain the search term
+  while (node = walker.nextNode()) {
+    if (node.textContent && node.textContent.toLowerCase().includes(searchTerm.toLowerCase())) {
+      textNodes.push(node as Text);
     }
-    
-    currentPosition += text.length;
   }
+
+  // Process nodes in reverse order to avoid messing up positions
+  textNodes.reverse().forEach(textNode => {
+    highlightAllOccurrencesInNode(textNode, searchTerm);
+  });
+
+  // Scroll to the first highlight
+  scrollToHighlight();
 }
 
-function highlightTextInNode(textNode: Text, startOffset: number, length: number) {
+function highlightAllOccurrencesInNode(textNode: Text, searchTerm: string) {
   const parent = textNode.parentElement;
   if (!parent) return;
 
   const text = textNode.textContent || '';
-  const beforeText = text.substring(0, startOffset);
-  const highlightText = text.substring(startOffset, startOffset + length);
-  const afterText = text.substring(startOffset + length);
+  const regex = new RegExp(`(${escapeRegExp(searchTerm)})`, 'gi');
+  const parts = text.split(regex);
 
-  const fragment = document.createDocumentFragment();
-  
-  if (beforeText) {
-    fragment.appendChild(document.createTextNode(beforeText));
-  }
-  
-  const mark = document.createElement('mark');
-  mark.className = 'bg-yellow-300 search-highlight';
-  mark.textContent = highlightText;
-  fragment.appendChild(mark);
-  
-  if (afterText) {
-    fragment.appendChild(document.createTextNode(afterText));
-  }
+  if (parts.length > 1) {
+    const fragment = document.createDocumentFragment();
+    
+    parts.forEach((part) => {
+      if (regex.test(part)) {
+        const mark = document.createElement('mark');
+        mark.className = 'bg-yellow-300 search-highlight';
+        mark.textContent = part;
+        fragment.appendChild(mark);
+      } else {
+        fragment.appendChild(document.createTextNode(part));
+      }
+    });
 
-  parent.replaceChild(fragment, textNode);
+    parent.replaceChild(fragment, textNode);
+  }
+}
+
+function escapeRegExp(string: string) {
+  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
 function scrollToHighlight() {
