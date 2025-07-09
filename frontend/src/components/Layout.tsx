@@ -1,5 +1,6 @@
 import { ReactNode, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { useRandomQuote } from '../hooks/useRandomQuote';
 
 interface LayoutProps {
   children: ReactNode;
@@ -8,6 +9,7 @@ interface LayoutProps {
 function Layout({ children }: LayoutProps) {
   const location = useLocation();
   const [projectsOpen, setProjectsOpen] = useState(false);
+  const { quote, loading } = useRandomQuote();
 
   const navItems = [
     { path: '/about', label: 'About' },
@@ -32,7 +34,7 @@ function Layout({ children }: LayoutProps) {
         </Link>
         
         <p className="text-sm text-gray-600 mt-2 mb-8">
-          this, too, is it
+          {loading ? 'this, too, is it' : quote}
         </p>
 
         <nav className="space-y-2">
