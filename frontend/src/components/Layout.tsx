@@ -51,14 +51,6 @@ export function Layout({ children }: LayoutProps) {
       {/* Sidebar toggle when hidden */}
       {!sidebarVisible && <SidebarToggle />}
       
-      {/* Subtle overlay when search is open */}
-      {searchOpen && (
-        <div 
-          className="fixed inset-0 bg-black bg-opacity-10 z-40 transition-opacity duration-200"
-          onClick={() => setSearchOpen(false)}
-        />
-      )}
-      
       {/* Search modal */}
       <Search isOpen={searchOpen} onClose={() => setSearchOpen(false)} />
       

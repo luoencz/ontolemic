@@ -20,11 +20,11 @@ function ControlsModal() {
     }
   }, [showControls, dispatch]);
 
-  if (!showControls) return null;
-
   return (
     <div 
-      className="modal-backdrop fixed inset-0 z-50 flex items-center justify-center"
+      className={`modal-backdrop fixed inset-0 z-50 flex items-center justify-center transition-all duration-200 ${
+        showControls ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+      }`}
       style={{ 
         backgroundColor: 'rgba(0, 0, 0, 0.3)',
         backdropFilter: 'blur(5px)',

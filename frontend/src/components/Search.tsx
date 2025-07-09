@@ -34,19 +34,7 @@ export function Search({ isOpen, onClose }: SearchProps) {
     }
   }, [query]);
 
-  // Handle click outside
-  useEffect(() => {
-    if (!isOpen) return;
 
-    const handleClickOutside = (event: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
-        onClose();
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [isOpen, onClose]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     switch (e.key) {
@@ -84,22 +72,31 @@ export function Search({ isOpen, onClose }: SearchProps) {
     onClose();
   };
 
-  if (!isOpen) return null;
-
   return (
     <div 
-      ref={containerRef}
-      className="fixed top-4 right-4 z-50 w-96"
+      className={`fixed inset-0 z-50 flex items-start justify-center pt-32 p-4 transition-all duration-200 ${
+        isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+      }`}
+      style={{ 
+        backgroundColor: 'rgba(0, 0, 0, 0.3)',
+        backdropFilter: 'blur(5px)',
+        WebkitBackdropFilter: 'blur(5px)'
+      }}
+      onClick={onClose}
     >
-      <div className="bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden transition-all duration-200 ease-out">
+      <div 
+        ref={containerRef}
+        className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full mx-4 overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
         <input
           ref={inputRef}
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Search..."
-          className="w-full px-4 py-3 text-sm focus:outline-none"
+          placeholder="Search pages..."
+          className="w-full px-6 py-4 text-base focus:outline-none"
         />
         
         {results.length > 0 && (
@@ -109,14 +106,14 @@ export function Search({ isOpen, onClose }: SearchProps) {
                 key={`${result.pagePath}-${result.index}`}
                 onClick={() => navigateToResult(result)}
                 onMouseEnter={() => setSelectedIndex(index)}
-                className={`w-full text-left px-4 py-2.5 hover:bg-gray-50 text-sm transition-colors ${
+                className={`w-full text-left px-6 py-3 hover:bg-gray-50 transition-colors ${
                   index === selectedIndex ? 'bg-gray-50' : ''
                 }`}
               >
-                <div className="font-medium text-xs text-gray-500 mb-0.5">
+                <div className="font-medium text-sm text-gray-500 mb-1">
                   {result.pageTitle}
                 </div>
-                <div className="text-gray-700 text-xs leading-relaxed">
+                <div className="text-gray-700 text-sm leading-relaxed">
                   ...{highlightMatch(result.context, query)}...
                 </div>
               </button>
@@ -125,7 +122,7 @@ export function Search({ isOpen, onClose }: SearchProps) {
         )}
         
         {query.length >= 2 && results.length === 0 && (
-          <div className="px-4 py-3 text-xs text-gray-500 border-t border-gray-100">
+          <div className="px-6 py-4 text-sm text-gray-500 border-t border-gray-100">
             No results found
           </div>
         )}
