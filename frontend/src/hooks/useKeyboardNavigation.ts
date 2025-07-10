@@ -42,10 +42,14 @@ export function useKeyboardNavigation() {
     } else if (location.pathname.startsWith('/backstage')) {
       // Handle backstage focus
       setFocusedIndex(navItems.length); // Backstage is after all nav items
-      dispatch(setBackstageOpen(true));
-      const currentBackstageIndex = backstageItems.findIndex(item => item.path === location.pathname);
-      if (currentBackstageIndex !== -1) {
-        setFocusedBackstageIndex(currentBackstageIndex);
+      
+      // Only auto-expand if we're on a sub-page, not the main backstage page
+      if (location.pathname !== '/backstage') {
+        dispatch(setBackstageOpen(true));
+        const currentBackstageIndex = backstageItems.findIndex(item => item.path === location.pathname);
+        if (currentBackstageIndex !== -1) {
+          setFocusedBackstageIndex(currentBackstageIndex);
+        }
       }
     }
   }, [location.pathname, dispatch]);
@@ -129,28 +133,125 @@ export function useKeyboardNavigation() {
       if (!mainElement) return;
       
       const focusableElements = mainElement.querySelectorAll('a, button, [tabindex]:not([tabindex="-1"])');
-      const focusableArray = Array.from(focusableElements);
+      const focusableArray = Array.from(focusableElements) as HTMLElement[];
       
+      if (focusableArray.length === 0) return;
+
+      // Get positions of all focusable elements
+      const getElementCenter = (element: HTMLElement) => {
+        const rect = element.getBoundingClientRect();
+        return {
+          x: rect.left + rect.width / 2,
+          y: rect.top + rect.height / 2,
+          element,
+          rect
+        };
+      };
+
+      const elements = focusableArray.map((el, index) => ({
+        ...getElementCenter(el),
+        index
+      }));
+
+      const currentElement = mainFocusedIndex >= 0 && mainFocusedIndex < elements.length 
+        ? elements[mainFocusedIndex] 
+        : null;
+
       switch (event.key) {
         case 'ArrowUp':
           event.preventDefault();
-          if (focusableArray.length > 0) {
-            setMainFocusedIndex(prev => prev <= 0 ? focusableArray.length - 1 : prev - 1);
+          if (currentElement) {
+            // Find element above current one
+            const candidates = elements.filter(el => 
+              el.y < currentElement.y - 10 && // Must be above
+              Math.abs(el.x - currentElement.x) < Math.max(el.rect.width, currentElement.rect.width) // Horizontally overlapping
+            );
+            
+            if (candidates.length > 0) {
+              // Find the closest one
+              const closest = candidates.reduce((prev, curr) => 
+                (currentElement.y - curr.y) < (currentElement.y - prev.y) ? curr : prev
+              );
+              setMainFocusedIndex(closest.index);
+            } else {
+              // No element above, keep the same index but it won't be visually focused
+              // This is handled by the focus styling effect
+            }
+          } else {
+            setMainFocusedIndex(0);
           }
           break;
           
         case 'ArrowDown':
           event.preventDefault();
-          if (focusableArray.length > 0) {
-            setMainFocusedIndex(prev => prev >= focusableArray.length - 1 ? 0 : prev + 1);
+          if (currentElement) {
+            // Find element below current one
+            const candidates = elements.filter(el => 
+              el.y > currentElement.y + 10 && // Must be below
+              Math.abs(el.x - currentElement.x) < Math.max(el.rect.width, currentElement.rect.width) // Horizontally overlapping
+            );
+            
+            if (candidates.length > 0) {
+              // Find the closest one
+              const closest = candidates.reduce((prev, curr) => 
+                (curr.y - currentElement.y) < (prev.y - currentElement.y) ? curr : prev
+              );
+              setMainFocusedIndex(closest.index);
+            } else {
+              // No element below, keep the same index but it won't be visually focused
+              // This is handled by the focus styling effect
+            }
+          } else {
+            setMainFocusedIndex(0);
           }
           break;
           
         case 'ArrowLeft':
+          event.preventDefault();
+          if (currentElement) {
+            // Find element to the left
+            const candidates = elements.filter(el => 
+              el.x < currentElement.x - 10 && // Must be to the left
+              Math.abs(el.y - currentElement.y) < Math.max(el.rect.height, currentElement.rect.height) / 2 // Vertically aligned
+            );
+            
+            if (candidates.length > 0) {
+              // Find the closest one
+              const closest = candidates.reduce((prev, curr) => 
+                (currentElement.x - curr.x) < (currentElement.x - prev.x) ? curr : prev
+              );
+              setMainFocusedIndex(closest.index);
+            } else {
+              // No element to the left, switch to sidebar
+              dispatch(setFocusArea('sidebar'));
+            }
+          } else {
+            setMainFocusedIndex(0);
+          }
+          break;
+          
         case 'ArrowRight':
           event.preventDefault();
-          // Switch to sidebar focus area
-          dispatch(setFocusArea('sidebar'));
+          if (currentElement) {
+            // Find element to the right
+            const candidates = elements.filter(el => 
+              el.x > currentElement.x + 10 && // Must be to the right
+              Math.abs(el.y - currentElement.y) < Math.max(el.rect.height, currentElement.rect.height) / 2 // Vertically aligned
+            );
+            
+            if (candidates.length > 0) {
+              // Find the closest one
+              const closest = candidates.reduce((prev, curr) => 
+                (curr.x - currentElement.x) < (prev.x - currentElement.x) ? curr : prev
+              );
+              setMainFocusedIndex(closest.index);
+            } else {
+              // No element to the right, keep the same index but it won't be visually focused
+              // This is handled by the focus styling effect
+            }
+          } else {
+            setMainFocusedIndex(0);
+          }
           break;
           
         case 'Enter':
