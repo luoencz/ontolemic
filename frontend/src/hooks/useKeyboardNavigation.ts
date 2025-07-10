@@ -13,6 +13,7 @@ export function useKeyboardNavigation() {
   const showControls = useAppSelector(state => state.ui.showControls);
   const showSettings = useAppSelector(state => state.ui.showSettings);
   const backstageUnlocked = useAppSelector(state => state.ui.backstageUnlocked);
+  const sidebarVisible = useAppSelector(state => state.ui.sidebarVisible);
   const projectsOpen = useAppSelector(state => state.navigation.projectsOpen);
   const backstageOpen = useAppSelector(state => state.navigation.backstageOpen);
   const focusArea = useAppSelector(state => state.navigation.focusArea);
@@ -25,37 +26,43 @@ export function useKeyboardNavigation() {
 
   // Set initial focus to current page
   useEffect(() => {
-    // Always reset focus to sidebar when navigating to a new page
-    dispatch(setFocusArea('sidebar'));
-    
-    const currentIndex = navItems.findIndex(item => 
-      item.path === location.pathname || 
-      (item.isDropdown && location.pathname.startsWith('/projects'))
-    );
-    if (currentIndex !== -1) {
-      setFocusedIndex(currentIndex);
+    // Only set sidebar focus if sidebar is visible
+    if (sidebarVisible) {
+      // Always reset focus to sidebar when navigating to a new page
+      dispatch(setFocusArea('sidebar'));
       
-      if (location.pathname.startsWith('/projects/')) {
-        dispatch(setProjectsOpen(true));
-        const currentProjectIndex = projectItems.findIndex(item => item.path === location.pathname);
-        if (currentProjectIndex !== -1) {
-          setFocusedProjectIndex(currentProjectIndex);
+      const currentIndex = navItems.findIndex(item => 
+        item.path === location.pathname || 
+        (item.isDropdown && location.pathname.startsWith('/projects'))
+      );
+      if (currentIndex !== -1) {
+        setFocusedIndex(currentIndex);
+        
+        if (location.pathname.startsWith('/projects/')) {
+          dispatch(setProjectsOpen(true));
+          const currentProjectIndex = projectItems.findIndex(item => item.path === location.pathname);
+          if (currentProjectIndex !== -1) {
+            setFocusedProjectIndex(currentProjectIndex);
+          }
+        }
+      } else if (location.pathname.startsWith('/backstage')) {
+        // Handle backstage focus
+        setFocusedIndex(navItems.length); // Backstage is after all nav items
+        
+        // Only auto-expand if we're on a sub-page, not the main backstage page
+        if (location.pathname !== '/backstage') {
+          dispatch(setBackstageOpen(true));
+          const currentBackstageIndex = backstageItems.findIndex(item => item.path === location.pathname);
+          if (currentBackstageIndex !== -1) {
+            setFocusedBackstageIndex(currentBackstageIndex);
+          }
         }
       }
-    } else if (location.pathname.startsWith('/backstage')) {
-      // Handle backstage focus
-      setFocusedIndex(navItems.length); // Backstage is after all nav items
-      
-      // Only auto-expand if we're on a sub-page, not the main backstage page
-      if (location.pathname !== '/backstage') {
-        dispatch(setBackstageOpen(true));
-        const currentBackstageIndex = backstageItems.findIndex(item => item.path === location.pathname);
-        if (currentBackstageIndex !== -1) {
-          setFocusedBackstageIndex(currentBackstageIndex);
-        }
-      }
+    } else {
+      // If sidebar is hidden, focus on main area
+      dispatch(setFocusArea('main'));
     }
-  }, [location.pathname, dispatch]);
+  }, [location.pathname, dispatch, sidebarVisible]);
 
   const handleKeyDown = useCallback((event: KeyboardEvent) => {
     // Don't handle keyboard navigation when typing in input fields or textareas
@@ -80,7 +87,10 @@ export function useKeyboardNavigation() {
           }
         }
       } else {
-        dispatch(setFocusArea('sidebar'));
+        // Only switch to sidebar if it's visible
+        if (sidebarVisible) {
+          dispatch(setFocusArea('sidebar'));
+        }
       }
       return;
     }
@@ -130,6 +140,11 @@ export function useKeyboardNavigation() {
     // Don't process navigation keys when modals are open
     if (showControls || showSettings) return;
 
+    // Don't process arrow navigation when Cmd/Ctrl is pressed (preserve browser shortcuts)
+    if ((event.metaKey || event.ctrlKey) && ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(event.key)) {
+      return;
+    }
+
     // Handle navigation based on focus area
     if (focusArea === 'main') {
       const mainElement = document.querySelector('main');
@@ -162,7 +177,10 @@ export function useKeyboardNavigation() {
 
       switch (event.key) {
         case 'ArrowUp':
-          event.preventDefault();
+          // Don't prevent default if Cmd/Ctrl is pressed (preserve browser shortcuts)
+          if (!event.metaKey && !event.ctrlKey) {
+            event.preventDefault();
+          }
           if (currentElement) {
             // Find element above current one
             const candidates = elements.filter(el => 
@@ -186,7 +204,10 @@ export function useKeyboardNavigation() {
           break;
           
         case 'ArrowDown':
-          event.preventDefault();
+          // Don't prevent default if Cmd/Ctrl is pressed (preserve browser shortcuts)
+          if (!event.metaKey && !event.ctrlKey) {
+            event.preventDefault();
+          }
           if (currentElement) {
             // Find element below current one
             const candidates = elements.filter(el => 
@@ -210,7 +231,10 @@ export function useKeyboardNavigation() {
           break;
           
         case 'ArrowLeft':
-          event.preventDefault();
+          // Don't prevent default if Cmd/Ctrl is pressed (preserve browser shortcuts)
+          if (!event.metaKey && !event.ctrlKey) {
+            event.preventDefault();
+          }
           if (currentElement) {
             // Find element to the left
             const candidates = elements.filter(el => 
@@ -225,8 +249,10 @@ export function useKeyboardNavigation() {
               );
               setMainFocusedIndex(closest.index);
             } else {
-              // No element to the left, switch to sidebar
-              dispatch(setFocusArea('sidebar'));
+              // No element to the left, switch to sidebar only if it's visible
+              if (sidebarVisible) {
+                dispatch(setFocusArea('sidebar'));
+              }
             }
           } else {
             setMainFocusedIndex(0);
@@ -234,7 +260,10 @@ export function useKeyboardNavigation() {
           break;
           
         case 'ArrowRight':
-          event.preventDefault();
+          // Don't prevent default if Cmd/Ctrl is pressed (preserve browser shortcuts)
+          if (!event.metaKey && !event.ctrlKey) {
+            event.preventDefault();
+          }
           if (currentElement) {
             // Find element to the right
             const candidates = elements.filter(el => 
@@ -271,9 +300,15 @@ export function useKeyboardNavigation() {
     // Sidebar navigation
     if (focusArea !== 'sidebar') return;
 
+    // If sidebar is not visible, don't process any navigation
+    if (!sidebarVisible) return;
+
     switch (event.key) {
       case 'ArrowUp':
-        event.preventDefault();
+        // Don't prevent default if Cmd/Ctrl is pressed (preserve browser shortcuts)
+        if (!event.metaKey && !event.ctrlKey) {
+          event.preventDefault();
+        }
         // Handle navigation from bottom buttons
         if (bottomButtonFocused >= 0) {
           setBottomButtonFocused(-1);
@@ -321,7 +356,10 @@ export function useKeyboardNavigation() {
         break;
 
       case 'ArrowDown':
-        event.preventDefault();
+        // Don't prevent default if Cmd/Ctrl is pressed (preserve browser shortcuts)
+        if (!event.metaKey && !event.ctrlKey) {
+          event.preventDefault();
+        }
         const isLastNavItem = focusedIndex === navItems.length - 1;
         const isBackstageItem = focusedIndex === navItems.length;
         
@@ -380,7 +418,10 @@ export function useKeyboardNavigation() {
         break;
 
       case 'ArrowRight':
-        event.preventDefault();
+        // Don't prevent default if Cmd/Ctrl is pressed (preserve browser shortcuts)
+        if (!event.metaKey && !event.ctrlKey) {
+          event.preventDefault();
+        }
         // If in bottom buttons row, navigate right
         if (bottomButtonFocused >= 0) {
           if (bottomButtonFocused < 3) {
@@ -392,12 +433,12 @@ export function useKeyboardNavigation() {
         // If focused on expandable item (Projects), expand it
         else if (focusedIndex === 2 && navItems[2].isDropdown && !projectsOpen) {
           dispatch(setProjectsOpen(true));
-          setFocusedProjectIndex(0);
+          // Don't automatically focus first item - keep focus on the section
         }
         // If focused on Backstage, expand it
         else if (focusedIndex === navItems.length && !backstageOpen) {
           dispatch(setBackstageOpen(true));
-          setFocusedBackstageIndex(0);
+          // Don't automatically focus first item - keep focus on the section
         } else {
           // Otherwise, switch to main focus area
           const mainElement = document.querySelector('main');
@@ -414,7 +455,10 @@ export function useKeyboardNavigation() {
         break;
 
       case 'ArrowLeft':
-        event.preventDefault();
+        // Don't prevent default if Cmd/Ctrl is pressed (preserve browser shortcuts)
+        if (!event.metaKey && !event.ctrlKey) {
+          event.preventDefault();
+        }
         // If in bottom buttons row, navigate left
         if (bottomButtonFocused >= 0) {
           if (bottomButtonFocused > 0) {
@@ -484,7 +528,7 @@ export function useKeyboardNavigation() {
         }
         break;
     }
-  }, [focusedIndex, focusedProjectIndex, focusedBackstageIndex, projectsOpen, backstageOpen, backstageUnlocked, navigate, showControls, showSettings, focusArea, mainFocusedIndex, dispatch, bottomButtonFocused]);
+  }, [focusedIndex, focusedProjectIndex, focusedBackstageIndex, projectsOpen, backstageOpen, backstageUnlocked, navigate, showControls, showSettings, focusArea, mainFocusedIndex, dispatch, bottomButtonFocused, sidebarVisible]);
 
   useEffect(() => {
     document.addEventListener('keydown', handleKeyDown);
@@ -517,7 +561,7 @@ export function useKeyboardNavigation() {
         element.classList.remove('ring-2', 'ring-black', 'ring-offset-2', 'rounded');
       });
     };
-  }, [mainFocusedIndex, focusArea]);
+  }, [mainFocusedIndex, focusArea, location.pathname]);
 
   return {
     focusedIndex,
