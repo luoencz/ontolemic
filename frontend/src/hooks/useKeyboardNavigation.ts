@@ -5,126 +5,452 @@ import { toggleSidebar, toggleSound, setShowControls, setShowSettings, closeAllM
 import { setProjectsOpen, setResearchOpen, setBackstageOpen, setFocusArea } from '../store/slices/navigationSlice';
 import { navItems, projectItems, researchItems, backstageItems } from '../components/Sidebar';
 
+// Define navigation node structure
+interface NavigationNode {
+  id: string;
+  path: string;
+  label: string;
+  expandable?: boolean;
+  children?: NavigationNode[];
+}
+
 export function useKeyboardNavigation() {
   const navigate = useNavigate();
   const location = useLocation();
   const dispatch = useAppDispatch();
   
+  // Bottom button actions
+  const bottomButtons = [
+    { id: 'toggle-sidebar', action: () => dispatch(toggleSidebar()), title: 'Toggle Sidebar (⌘E)' },
+    { id: 'settings', action: () => dispatch(setShowSettings(true)), title: 'Settings (⌘S)' },
+    { id: 'toggle-sound', action: () => dispatch(toggleSound()), title: 'Toggle Sound (⌘M)' },
+    { id: 'controls', action: () => dispatch(setShowControls(true)), title: 'Show keyboard controls (⌘?)' },
+  ];
+  
+  // UI state
   const showControls = useAppSelector(state => state.ui.showControls);
   const showSettings = useAppSelector(state => state.ui.showSettings);
   const backstageUnlocked = useAppSelector(state => state.ui.backstageUnlocked);
   const sidebarVisible = useAppSelector(state => state.ui.sidebarVisible);
+  
+  // Navigation state
   const projectsOpen = useAppSelector(state => state.navigation.projectsOpen);
   const researchOpen = useAppSelector(state => state.navigation.researchOpen);
   const backstageOpen = useAppSelector(state => state.navigation.backstageOpen);
   const focusArea = useAppSelector(state => state.navigation.focusArea);
   
-  const [focusedIndex, setFocusedIndex] = useState(-1);
-  const [focusedProjectIndex, setFocusedProjectIndex] = useState(-1);
-  const [focusedResearchIndex, setFocusedResearchIndex] = useState(-1);
-  const [focusedBackstageIndex, setFocusedBackstageIndex] = useState(-1);
-  const [mainFocusedIndex, setMainFocusedIndex] = useState(-1);
-  const [bottomButtonFocused, setBottomButtonFocused] = useState(-1);
+  // Focus state - using a single object for all focus indices
+  const [focusState, setFocusState] = useState({
+    navIndex: -1,
+    projectIndex: -1,
+    researchIndex: -1,
+    backstageIndex: -1,
+    bottomButtonIndex: -1,
+    mainIndex: -1,
+  });
 
-  // Set initial focus to current page
-  useEffect(() => {
-    // Only set sidebar focus if sidebar is visible
-    if (sidebarVisible) {
-      // Always reset focus to sidebar when navigating to a new page
-      dispatch(setFocusArea('sidebar'));
-      
-      const currentIndex = navItems.findIndex(item => 
-        item.path === location.pathname || 
-        (item.isDropdown && (
-          location.pathname.startsWith('/projects') ||
-          location.pathname.startsWith('/research')
-        ))
-      );
-      if (currentIndex !== -1) {
-        setFocusedIndex(currentIndex);
-        
-        if (location.pathname.startsWith('/projects/')) {
-          dispatch(setProjectsOpen(true));
-          const currentProjectIndex = projectItems.findIndex(item => item.path === location.pathname);
-          if (currentProjectIndex !== -1) {
-            setFocusedProjectIndex(currentProjectIndex);
-          }
-        } else if (location.pathname.startsWith('/research/')) {
-          dispatch(setResearchOpen(true));
-          const currentResearchIndex = researchItems.findIndex(item => item.path === location.pathname);
-          if (currentResearchIndex !== -1) {
-            setFocusedResearchIndex(currentResearchIndex);
-          }
-        }
-      } else if (location.pathname.startsWith('/backstage')) {
-        // Handle backstage focus
-        setFocusedIndex(navItems.length); // Backstage is after all nav items
-        
-        // Only auto-expand if we're on a sub-page, not the main backstage page
-        if (location.pathname !== '/backstage') {
-          dispatch(setBackstageOpen(true));
-          const currentBackstageIndex = backstageItems.findIndex(item => item.path === location.pathname);
-          if (currentBackstageIndex !== -1) {
-            setFocusedBackstageIndex(currentBackstageIndex);
-          }
-        }
-      }
-    } else {
-      // If sidebar is hidden, focus on main area
-      dispatch(setFocusArea('main'));
+  // Build navigation tree dynamically based on current state
+  const buildNavigationTree = useCallback((): NavigationNode[] => {
+    const tree: NavigationNode[] = navItems.map((item, index) => ({
+      id: `nav-${index}`,
+      path: item.path,
+      label: item.label,
+      expandable: item.isDropdown,
+      children: item.isDropdown ? (
+        item.path === '/projects' ? 
+          projectItems.map((proj, idx) => ({
+            id: `project-${idx}`,
+            path: proj.path,
+            label: proj.label,
+          })) :
+          researchItems.map((res, idx) => ({
+            id: `research-${idx}`,
+            path: res.path,
+            label: res.label,
+          }))
+      ) : undefined,
+    }));
+
+    // Add backstage if unlocked
+    if (backstageUnlocked) {
+      tree.push({
+        id: 'backstage',
+        path: '/backstage',
+        label: '// Backstage',
+        expandable: true,
+        children: backstageItems.map((item, idx) => ({
+          id: `backstage-${idx}`,
+          path: item.path,
+          label: item.label,
+        })),
+      });
     }
-  }, [location.pathname, dispatch, sidebarVisible]);
 
-  const handleKeyDown = useCallback((event: KeyboardEvent) => {
-    // Don't handle keyboard navigation when typing in input fields or textareas
-    const target = event.target as HTMLElement;
-    if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
+    return tree;
+  }, [backstageUnlocked]);
+
+  // Get expansion state for a section
+  const isExpanded = useCallback((node: NavigationNode): boolean => {
+    if (!node.expandable) return false;
+    switch (node.path) {
+      case '/projects': return projectsOpen;
+      case '/research': return researchOpen;
+      case '/backstage': return backstageOpen;
+      default: return false;
+    }
+  }, [projectsOpen, researchOpen, backstageOpen]);
+
+  // Toggle expansion for a section
+  const toggleExpansion = useCallback((node: NavigationNode) => {
+    switch (node.path) {
+      case '/projects': dispatch(setProjectsOpen(!projectsOpen)); break;
+      case '/research': dispatch(setResearchOpen(!researchOpen)); break;
+      case '/backstage': dispatch(setBackstageOpen(!backstageOpen)); break;
+    }
+  }, [dispatch, projectsOpen, researchOpen, backstageOpen]);
+
+  // Set initial focus based on current page
+  useEffect(() => {
+    if (!sidebarVisible) {
+      dispatch(setFocusArea('main'));
       return;
     }
 
-    // Handle Tab key to switch focus areas
-    if (event.key === 'Tab') {
-      event.preventDefault();
-      
-      if (focusArea === 'sidebar') {
+    dispatch(setFocusArea('sidebar'));
+    const tree = buildNavigationTree();
+    
+    // Find current page in navigation tree
+    let foundFocus = false;
+    tree.forEach((node, navIndex) => {
+      if (node.path === location.pathname) {
+        setFocusState(prev => ({ ...prev, navIndex }));
+        foundFocus = true;
+      } else if (node.children) {
+        node.children.forEach((child, childIndex) => {
+          if (child.path === location.pathname) {
+            setFocusState(prev => ({
+              ...prev,
+              navIndex,
+              projectIndex: node.path === '/projects' ? childIndex : -1,
+              researchIndex: node.path === '/research' ? childIndex : -1,
+              backstageIndex: node.path === '/backstage' ? childIndex : -1,
+            }));
+            
+            // Auto-expand parent section
+            if (!isExpanded(node)) {
+              toggleExpansion(node);
+            }
+            foundFocus = true;
+          }
+        });
+      }
+    });
+
+    if (!foundFocus) {
+      setFocusState(prev => ({ ...prev, navIndex: -1 }));
+    }
+  }, [location.pathname, dispatch, sidebarVisible, buildNavigationTree, isExpanded, toggleExpansion]);
+
+  // Helper to get currently focused section
+  const getFocusedSection = useCallback(() => {
+    const tree = buildNavigationTree();
+    const node = tree[focusState.navIndex];
+    if (!node) return null;
+    
+    return {
+      node,
+      childIndex: node.path === '/projects' ? focusState.projectIndex :
+                  node.path === '/research' ? focusState.researchIndex :
+                  node.path === '/backstage' ? focusState.backstageIndex : -1,
+    };
+  }, [buildNavigationTree, focusState]);
+
+  // Navigate sidebar vertically
+  const navigateSidebar = useCallback((direction: 'up' | 'down') => {
+    const tree = buildNavigationTree();
+    const section = getFocusedSection();
+
+    if (direction === 'up') {
+      // Handle bottom buttons navigation
+      if (focusState.bottomButtonIndex >= 0) {
+        const lastNavIndex = backstageUnlocked ? tree.length - 1 : navItems.length - 1;
+        setFocusState(prev => ({ ...prev, bottomButtonIndex: -1, navIndex: lastNavIndex }));
+        return;
+      }
+
+      // Handle navigation within expanded sections
+      if (section && section.node.expandable && isExpanded(section.node) && section.childIndex >= 0) {
+        if (section.childIndex === 0) {
+          // Exit child navigation
+          setFocusState(prev => ({
+            ...prev,
+            projectIndex: -1,
+            researchIndex: -1,
+            backstageIndex: -1,
+          }));
+        } else {
+          // Navigate to previous child
+          const key = section.node.path === '/projects' ? 'projectIndex' :
+                     section.node.path === '/research' ? 'researchIndex' : 'backstageIndex';
+          setFocusState(prev => ({ ...prev, [key]: section.childIndex - 1 }));
+        }
+        return;
+      }
+
+      // Navigate between top-level items
+      if (focusState.navIndex > 0) {
+        setFocusState(prev => ({ ...prev, navIndex: prev.navIndex - 1 }));
+      } else if (focusState.navIndex === 0) {
+        // Loop to bottom buttons
+        setFocusState(prev => ({ ...prev, navIndex: -1, bottomButtonIndex: bottomButtons.length - 1 }));
+      }
+    } else {
+      // Handle down navigation
+      if (focusState.bottomButtonIndex >= 0) {
+        // From bottom buttons, loop to top
+        setFocusState(prev => ({ ...prev, bottomButtonIndex: -1, navIndex: 0 }));
+        return;
+      }
+
+      // Handle navigation within expanded sections
+      if (section && section.node.expandable && isExpanded(section.node)) {
+        if (section.childIndex === -1 && section.node.children && section.node.children.length > 0) {
+          // Enter child navigation
+          const key = section.node.path === '/projects' ? 'projectIndex' :
+                     section.node.path === '/research' ? 'researchIndex' : 'backstageIndex';
+          setFocusState(prev => ({ ...prev, [key]: 0 }));
+          return;
+        } else if (section.childIndex >= 0 && section.node.children && 
+                  section.childIndex < section.node.children.length - 1) {
+          // Navigate to next child
+          const key = section.node.path === '/projects' ? 'projectIndex' :
+                     section.node.path === '/research' ? 'researchIndex' : 'backstageIndex';
+          setFocusState(prev => ({ ...prev, [key]: section.childIndex + 1 }));
+          return;
+        }
+      }
+
+      // Navigate between top-level items
+      if (focusState.navIndex < tree.length - 1) {
+        setFocusState(prev => ({ 
+          ...prev, 
+          navIndex: prev.navIndex + 1,
+          projectIndex: -1,
+          researchIndex: -1,
+          backstageIndex: -1,
+        }));
+      } else {
+        // Go to bottom buttons
+        setFocusState(prev => ({ ...prev, navIndex: -1, bottomButtonIndex: 0 }));
+      }
+    }
+  }, [buildNavigationTree, getFocusedSection, focusState, isExpanded, backstageUnlocked]);
+
+  // Navigate sidebar horizontally
+  const navigateSidebarHorizontal = useCallback((direction: 'left' | 'right') => {
+    // Handle bottom buttons
+    if (focusState.bottomButtonIndex >= 0) {
+      if (direction === 'right') {
+        setFocusState(prev => ({ 
+          ...prev, 
+          bottomButtonIndex: (prev.bottomButtonIndex + 1) % bottomButtons.length 
+        }));
+      } else {
+        setFocusState(prev => ({ 
+          ...prev, 
+          bottomButtonIndex: prev.bottomButtonIndex === 0 ? bottomButtons.length - 1 : prev.bottomButtonIndex - 1
+        }));
+      }
+      return;
+    }
+
+    const section = getFocusedSection();
+    if (!section) return;
+
+    if (direction === 'right') {
+      // Expand section or switch to main
+      if (section.node.expandable && !isExpanded(section.node)) {
+        toggleExpansion(section.node);
+      } else {
+        // Switch to main area
         const mainElement = document.querySelector('main');
         if (mainElement) {
           const focusableElements = mainElement.querySelectorAll('a, button, [tabindex]:not([tabindex="-1"])');
           if (focusableElements.length > 0) {
             dispatch(setFocusArea('main'));
-            if (mainFocusedIndex === -1) {
-              setMainFocusedIndex(0);
+            if (focusState.mainIndex === -1) {
+              setFocusState(prev => ({ ...prev, mainIndex: 0 }));
             }
           }
         }
+      }
+    } else {
+      // Collapse section or switch to main
+      if (section.node.expandable && isExpanded(section.node)) {
+        toggleExpansion(section.node);
+        // Clear child focus
+        setFocusState(prev => ({
+          ...prev,
+          projectIndex: -1,
+          researchIndex: -1,
+          backstageIndex: -1,
+        }));
       } else {
-        // Only switch to sidebar if it's visible
-        if (sidebarVisible) {
-          dispatch(setFocusArea('sidebar'));
+        // Switch to main area (wraps around)
+        const mainElement = document.querySelector('main');
+        if (mainElement) {
+          const focusableElements = mainElement.querySelectorAll('a, button, [tabindex]:not([tabindex="-1"])');
+          if (focusableElements.length > 0) {
+            dispatch(setFocusArea('main'));
+            if (focusState.mainIndex === -1) {
+              setFocusState(prev => ({ ...prev, mainIndex: 0 }));
+            }
+          }
         }
+      }
+    }
+  }, [focusState, getFocusedSection, isExpanded, toggleExpansion, dispatch]);
+
+  // Handle main area navigation
+  const navigateMainArea = useCallback((key: string, event: KeyboardEvent) => {
+    const mainElement = document.querySelector('main');
+    if (!mainElement) return;
+    
+    const focusableElements = Array.from(mainElement.querySelectorAll('a, button, [tabindex]:not([tabindex="-1"])')) as HTMLElement[];
+    if (focusableElements.length === 0) return;
+
+    const getElementCenter = (element: HTMLElement) => {
+      const rect = element.getBoundingClientRect();
+      return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2, element, rect };
+    };
+
+    const elements = focusableElements.map((el, index) => ({ ...getElementCenter(el), index }));
+    const current = focusState.mainIndex >= 0 && focusState.mainIndex < elements.length ? 
+                   elements[focusState.mainIndex] : null;
+
+    const findClosest = (candidates: typeof elements) => 
+      candidates.reduce((prev, curr) => {
+        const prevDist = Math.hypot(current!.x - prev.x, current!.y - prev.y);
+        const currDist = Math.hypot(current!.x - curr.x, current!.y - curr.y);
+        return currDist < prevDist ? curr : prev;
+      });
+
+    switch (key) {
+      case 'ArrowUp':
+        if (!event.metaKey && !event.ctrlKey) event.preventDefault();
+        if (current) {
+          const candidates = elements.filter(el => 
+            el.y < current.y - 10 && 
+            Math.abs(el.x - current.x) < Math.max(el.rect.width, current.rect.width)
+          );
+          if (candidates.length > 0) {
+            setFocusState(prev => ({ ...prev, mainIndex: findClosest(candidates).index }));
+          }
+        } else {
+          setFocusState(prev => ({ ...prev, mainIndex: 0 }));
+        }
+        break;
+
+      case 'ArrowDown':
+        if (!event.metaKey && !event.ctrlKey) event.preventDefault();
+        if (current) {
+          const candidates = elements.filter(el => 
+            el.y > current.y + 10 && 
+            Math.abs(el.x - current.x) < Math.max(el.rect.width, current.rect.width)
+          );
+          if (candidates.length > 0) {
+            setFocusState(prev => ({ ...prev, mainIndex: findClosest(candidates).index }));
+          }
+        } else {
+          setFocusState(prev => ({ ...prev, mainIndex: 0 }));
+        }
+        break;
+
+      case 'ArrowLeft':
+        if (!event.metaKey && !event.ctrlKey) event.preventDefault();
+        if (current) {
+          const candidates = elements.filter(el => 
+            el.x < current.x - 10 && 
+            Math.abs(el.y - current.y) < Math.max(el.rect.height, current.rect.height) / 2
+          );
+          if (candidates.length > 0) {
+            setFocusState(prev => ({ ...prev, mainIndex: findClosest(candidates).index }));
+          } else if (sidebarVisible) {
+            dispatch(setFocusArea('sidebar'));
+          }
+        } else {
+          setFocusState(prev => ({ ...prev, mainIndex: 0 }));
+        }
+        break;
+
+      case 'ArrowRight':
+        if (!event.metaKey && !event.ctrlKey) event.preventDefault();
+        if (current) {
+          const candidates = elements.filter(el => 
+            el.x > current.x + 10 && 
+            Math.abs(el.y - current.y) < Math.max(el.rect.height, current.rect.height) / 2
+          );
+          if (candidates.length > 0) {
+            setFocusState(prev => ({ ...prev, mainIndex: findClosest(candidates).index }));
+          }
+        } else {
+          setFocusState(prev => ({ ...prev, mainIndex: 0 }));
+        }
+        break;
+
+      case 'Enter':
+        event.preventDefault();
+        if (focusState.mainIndex >= 0 && focusState.mainIndex < focusableElements.length) {
+          focusableElements[focusState.mainIndex].click();
+        }
+        break;
+    }
+  }, [focusState, sidebarVisible, dispatch]);
+
+  // Main keyboard handler
+  const handleKeyDown = useCallback((event: KeyboardEvent) => {
+    // Don't handle when typing
+    const target = event.target as HTMLElement;
+    if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
+      return;
+    }
+
+    // Tab to switch focus areas
+    if (event.key === 'Tab') {
+      event.preventDefault();
+      if (focusArea === 'sidebar' && sidebarVisible) {
+        const mainElement = document.querySelector('main');
+        if (mainElement) {
+          const focusableElements = mainElement.querySelectorAll('a, button, [tabindex]:not([tabindex="-1"])');
+          if (focusableElements.length > 0) {
+            dispatch(setFocusArea('main'));
+            if (focusState.mainIndex === -1) {
+              setFocusState(prev => ({ ...prev, mainIndex: 0 }));
+            }
+          }
+        }
+      } else if (sidebarVisible) {
+        dispatch(setFocusArea('sidebar'));
       }
       return;
     }
 
-    // Handle modal shortcuts with Command/Ctrl key
+    // Global shortcuts
     if ((event.metaKey || event.ctrlKey) && !showControls && !showSettings) {
       switch (event.key.toLowerCase()) {
         case 's':
           event.preventDefault();
           dispatch(setShowSettings(true));
           return;
-        
         case 'm':
           event.preventDefault();
           dispatch(toggleSound());
           return;
-        
         case '/':
         case '?':
           event.preventDefault();
           dispatch(setShowControls(true));
           return;
-          
         case 'e':
           event.preventDefault();
           dispatch(toggleSidebar());
@@ -132,468 +458,81 @@ export function useKeyboardNavigation() {
       }
     }
 
-    // Handle ESC to close modals
+    // ESC to close modals or collapse sections
     if (event.key === 'Escape') {
       event.preventDefault();
       if (showControls || showSettings) {
         dispatch(closeAllModals());
-        return;
+      } else {
+        dispatch(setProjectsOpen(false));
+        dispatch(setResearchOpen(false));
+        dispatch(setBackstageOpen(false));
+        setFocusState({
+          navIndex: -1,
+          projectIndex: -1,
+          researchIndex: -1,
+          backstageIndex: -1,
+          bottomButtonIndex: -1,
+          mainIndex: focusState.mainIndex,
+        });
       }
-      dispatch(setProjectsOpen(false));
-      dispatch(setResearchOpen(false));
-      dispatch(setBackstageOpen(false));
-      setFocusedIndex(-1);
-      setFocusedProjectIndex(-1);
-      setFocusedResearchIndex(-1);
-      setFocusedBackstageIndex(-1);
-      setBottomButtonFocused(-1);
       return;
     }
 
     // Don't process navigation keys when modals are open
     if (showControls || showSettings) return;
 
-    // Don't process arrow navigation when Cmd/Ctrl is pressed (preserve browser shortcuts)
+    // Don't process arrow navigation when Cmd/Ctrl is pressed
     if ((event.metaKey || event.ctrlKey) && ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(event.key)) {
       return;
     }
 
-    // Handle navigation based on focus area
+    // Route to appropriate handler
     if (focusArea === 'main') {
-      const mainElement = document.querySelector('main');
-      if (!mainElement) return;
-      
-      const focusableElements = mainElement.querySelectorAll('a, button, [tabindex]:not([tabindex="-1"])');
-      const focusableArray = Array.from(focusableElements) as HTMLElement[];
-      
-      if (focusableArray.length === 0) return;
-
-      // Get positions of all focusable elements
-      const getElementCenter = (element: HTMLElement) => {
-        const rect = element.getBoundingClientRect();
-        return {
-          x: rect.left + rect.width / 2,
-          y: rect.top + rect.height / 2,
-          element,
-          rect
-        };
-      };
-
-      const elements = focusableArray.map((el, index) => ({
-        ...getElementCenter(el),
-        index
-      }));
-
-      const currentElement = mainFocusedIndex >= 0 && mainFocusedIndex < elements.length 
-        ? elements[mainFocusedIndex] 
-        : null;
-
+      navigateMainArea(event.key, event);
+    } else if (focusArea === 'sidebar' && sidebarVisible) {
       switch (event.key) {
         case 'ArrowUp':
-          // Don't prevent default if Cmd/Ctrl is pressed (preserve browser shortcuts)
-          if (!event.metaKey && !event.ctrlKey) {
-            event.preventDefault();
-          }
-          if (currentElement) {
-            // Find element above current one
-            const candidates = elements.filter(el => 
-              el.y < currentElement.y - 10 && // Must be above
-              Math.abs(el.x - currentElement.x) < Math.max(el.rect.width, currentElement.rect.width) // Horizontally overlapping
-            );
-            
-            if (candidates.length > 0) {
-              // Find the closest one
-              const closest = candidates.reduce((prev, curr) => 
-                (currentElement.y - curr.y) < (currentElement.y - prev.y) ? curr : prev
-              );
-              setMainFocusedIndex(closest.index);
-            } else {
-              // No element above, keep the same index but it won't be visually focused
-              // This is handled by the focus styling effect
-            }
-          } else {
-            setMainFocusedIndex(0);
-          }
+          navigateSidebar('up');
           break;
-          
         case 'ArrowDown':
-          // Don't prevent default if Cmd/Ctrl is pressed (preserve browser shortcuts)
-          if (!event.metaKey && !event.ctrlKey) {
-            event.preventDefault();
-          }
-          if (currentElement) {
-            // Find element below current one
-            const candidates = elements.filter(el => 
-              el.y > currentElement.y + 10 && // Must be below
-              Math.abs(el.x - currentElement.x) < Math.max(el.rect.width, currentElement.rect.width) // Horizontally overlapping
-            );
-            
-            if (candidates.length > 0) {
-              // Find the closest one
-              const closest = candidates.reduce((prev, curr) => 
-                (curr.y - currentElement.y) < (prev.y - currentElement.y) ? curr : prev
-              );
-              setMainFocusedIndex(closest.index);
-            } else {
-              // No element below, keep the same index but it won't be visually focused
-              // This is handled by the focus styling effect
-            }
-          } else {
-            setMainFocusedIndex(0);
-          }
+          navigateSidebar('down');
           break;
-          
         case 'ArrowLeft':
-          // Don't prevent default if Cmd/Ctrl is pressed (preserve browser shortcuts)
-          if (!event.metaKey && !event.ctrlKey) {
-            event.preventDefault();
-          }
-          if (currentElement) {
-            // Find element to the left
-            const candidates = elements.filter(el => 
-              el.x < currentElement.x - 10 && // Must be to the left
-              Math.abs(el.y - currentElement.y) < Math.max(el.rect.height, currentElement.rect.height) / 2 // Vertically aligned
-            );
-            
-            if (candidates.length > 0) {
-              // Find the closest one
-              const closest = candidates.reduce((prev, curr) => 
-                (currentElement.x - curr.x) < (currentElement.x - prev.x) ? curr : prev
-              );
-              setMainFocusedIndex(closest.index);
-            } else {
-              // No element to the left, switch to sidebar only if it's visible
-              if (sidebarVisible) {
-                dispatch(setFocusArea('sidebar'));
-              }
-            }
-          } else {
-            setMainFocusedIndex(0);
-          }
+          navigateSidebarHorizontal('left');
           break;
-          
         case 'ArrowRight':
-          // Don't prevent default if Cmd/Ctrl is pressed (preserve browser shortcuts)
-          if (!event.metaKey && !event.ctrlKey) {
-            event.preventDefault();
-          }
-          if (currentElement) {
-            // Find element to the right
-            const candidates = elements.filter(el => 
-              el.x > currentElement.x + 10 && // Must be to the right
-              Math.abs(el.y - currentElement.y) < Math.max(el.rect.height, currentElement.rect.height) / 2 // Vertically aligned
-            );
-            
-            if (candidates.length > 0) {
-              // Find the closest one
-              const closest = candidates.reduce((prev, curr) => 
-                (curr.x - currentElement.x) < (prev.x - currentElement.x) ? curr : prev
-              );
-              setMainFocusedIndex(closest.index);
-            } else {
-              // No element to the right, keep the same index but it won't be visually focused
-              // This is handled by the focus styling effect
-            }
-          } else {
-            setMainFocusedIndex(0);
-          }
+          navigateSidebarHorizontal('right');
           break;
-          
         case 'Enter':
           event.preventDefault();
-          if (mainFocusedIndex >= 0 && mainFocusedIndex < focusableArray.length) {
-            const element = focusableArray[mainFocusedIndex] as HTMLElement;
-            element.click();
+          if (focusState.bottomButtonIndex >= 0) {
+            // Execute bottom button action
+            const button = bottomButtons[focusState.bottomButtonIndex];
+            button.action();
+          } else {
+            // Navigate to selected item
+            const section = getFocusedSection();
+            if (section) {
+              if (section.childIndex >= 0 && section.node.children) {
+                navigate(section.node.children[section.childIndex].path);
+              } else {
+                navigate(section.node.path);
+              }
+            }
           }
           break;
       }
-      return;
     }
+  }, [dispatch, showControls, showSettings, focusArea, sidebarVisible, navigateSidebar, navigateSidebarHorizontal, navigateMainArea, getFocusedSection, navigate, focusState]);
 
-    // Sidebar navigation
-    if (focusArea !== 'sidebar') return;
-
-    // If sidebar is not visible, don't process any navigation
-    if (!sidebarVisible) return;
-
-    switch (event.key) {
-      case 'ArrowUp':
-        // Don't prevent default if Cmd/Ctrl is pressed (preserve browser shortcuts)
-        if (!event.metaKey && !event.ctrlKey) {
-          event.preventDefault();
-        }
-        // Handle navigation from bottom buttons
-        if (bottomButtonFocused >= 0) {
-          setBottomButtonFocused(-1);
-          if (backstageUnlocked) {
-            setFocusedIndex(navItems.length); // Go to Backstage
-          } else {
-            setFocusedIndex(navItems.length - 1); // Go to Contact
-          }
-        }
-        // Handle backstage navigation
-        else if (backstageOpen && focusedIndex === navItems.length && focusedBackstageIndex >= 0) {
-          if (focusedBackstageIndex === 0) {
-            setFocusedBackstageIndex(-1);
-          } else {
-            setFocusedBackstageIndex(prev => prev - 1);
-          }
-        }
-        // Navigate from backstage to last regular nav item
-        else if (focusedIndex === navItems.length && focusedBackstageIndex === -1) {
-          setFocusedIndex(navItems.length - 1); // Go to Contact
-        }
-        // Handle projects navigation
-        else if (projectsOpen && focusedIndex === 2 && focusedProjectIndex >= 0) {
-          if (focusedProjectIndex === 0) {
-            setFocusedProjectIndex(-1);
-          } else {
-            setFocusedProjectIndex(prev => prev - 1);
-          }
-        }
-        // Handle research navigation
-        else if (researchOpen && focusedIndex === 3 && focusedResearchIndex >= 0) {
-          if (focusedResearchIndex === 0) {
-            setFocusedResearchIndex(-1);
-          } else {
-            setFocusedResearchIndex(prev => prev - 1);
-          }
-        } else if (focusedIndex === 4) {
-          // From Contact, check if Research is open
-          if (researchOpen) {
-            setFocusedIndex(3);
-            setFocusedResearchIndex(researchItems.length - 1);
-          } else {
-            setFocusedIndex(3);
-          }
-        } else if (focusedIndex === 3) {
-          // From Research, check if Projects is open
-          if (projectsOpen) {
-            setFocusedIndex(2);
-            setFocusedProjectIndex(projectItems.length - 1);
-          } else {
-            setFocusedIndex(2);
-          }
-        } else if (focusedIndex === 0) {
-          // From About, loop to bottom buttons
-          setFocusedIndex(-1);
-          setBottomButtonFocused(3); // Start at the last button
-        } else {
-          setFocusedProjectIndex(-1);
-          setFocusedResearchIndex(-1);
-          setFocusedBackstageIndex(-1);
-          setFocusedIndex(prev => prev - 1);
-        }
-        break;
-
-      case 'ArrowDown':
-        // Don't prevent default if Cmd/Ctrl is pressed (preserve browser shortcuts)
-        if (!event.metaKey && !event.ctrlKey) {
-          event.preventDefault();
-        }
-        const isLastNavItem = focusedIndex === navItems.length - 1;
-        const isBackstageItem = focusedIndex === navItems.length;
-        
-        // Handle navigation from nav items
-        if (isLastNavItem && focusedProjectIndex === -1) {
-          if (backstageUnlocked) {
-            // From Contact, go to Backstage
-            setFocusedIndex(navItems.length);
-          } else {
-            // From Contact, go to bottom buttons
-            setFocusedIndex(-1);
-            setBottomButtonFocused(0);
-          }
-        }
-        // Handle navigation from backstage
-        else if (isBackstageItem && focusedBackstageIndex === -1) {
-          if (backstageOpen) {
-            setFocusedBackstageIndex(0);
-          } else {
-            // Go to bottom buttons
-            setFocusedIndex(-1);
-            setBottomButtonFocused(0);
-          }
-        }
-        // Handle navigation within backstage items
-        else if (backstageOpen && isBackstageItem && focusedBackstageIndex >= 0) {
-          if (focusedBackstageIndex === backstageItems.length - 1) {
-            // From last backstage item, go to bottom buttons
-            setFocusedBackstageIndex(-1);
-            setFocusedIndex(-1);
-            setBottomButtonFocused(0);
-          } else {
-            setFocusedBackstageIndex(prev => prev + 1);
-          }
-        }
-        // Handle navigation from bottom buttons - loop to top
-        else if (bottomButtonFocused >= 0) {
-          setBottomButtonFocused(-1);
-          setFocusedIndex(0);
-        }
-        // Handle projects navigation
-        else if (projectsOpen && focusedIndex === 2 && focusedProjectIndex >= 0) {
-          if (focusedProjectIndex === projectItems.length - 1) {
-            setFocusedProjectIndex(-1);
-            setFocusedIndex(3);
-          } else {
-            setFocusedProjectIndex(prev => prev + 1);
-          }
-        } else if (projectsOpen && focusedIndex === 2 && focusedProjectIndex === -1) {
-          setFocusedProjectIndex(0);
-        }
-        // Handle research navigation
-        else if (researchOpen && focusedIndex === 3 && focusedResearchIndex >= 0) {
-          if (focusedResearchIndex === researchItems.length - 1) {
-            setFocusedResearchIndex(-1);
-            setFocusedIndex(4);
-          } else {
-            setFocusedResearchIndex(prev => prev + 1);
-          }
-        } else if (researchOpen && focusedIndex === 3 && focusedResearchIndex === -1) {
-          setFocusedResearchIndex(0);
-        } else {
-          setFocusedProjectIndex(-1);
-          setFocusedResearchIndex(-1);
-          setFocusedBackstageIndex(-1);
-          setFocusedIndex(prev => prev + 1);
-        }
-        break;
-
-      case 'ArrowRight':
-        // Don't prevent default if Cmd/Ctrl is pressed (preserve browser shortcuts)
-        if (!event.metaKey && !event.ctrlKey) {
-          event.preventDefault();
-        }
-        // If in bottom buttons row, navigate right
-        if (bottomButtonFocused >= 0) {
-          if (bottomButtonFocused < 3) {
-            setBottomButtonFocused(prev => prev + 1);
-          } else {
-            setBottomButtonFocused(0); // Wrap around
-          }
-        }
-        // If focused on expandable item (Projects), expand it
-        else if (focusedIndex === 2 && navItems[2].isDropdown && !projectsOpen) {
-          dispatch(setProjectsOpen(true));
-          // Don't automatically focus first item - keep focus on the section
-        }
-        // If focused on expandable item (Research), expand it
-        else if (focusedIndex === 3 && navItems[3].isDropdown && !researchOpen) {
-          dispatch(setResearchOpen(true));
-          // Don't automatically focus first item - keep focus on the section
-        }
-        // If focused on Backstage, expand it
-        else if (focusedIndex === navItems.length && !backstageOpen) {
-          dispatch(setBackstageOpen(true));
-          // Don't automatically focus first item - keep focus on the section
-        } else {
-          // Otherwise, switch to main focus area
-          const mainElement = document.querySelector('main');
-          if (mainElement) {
-            const focusableElements = mainElement.querySelectorAll('a, button, [tabindex]:not([tabindex="-1"])');
-            if (focusableElements.length > 0) {
-              dispatch(setFocusArea('main'));
-              if (mainFocusedIndex === -1) {
-                setMainFocusedIndex(0);
-              }
-            }
-          }
-        }
-        break;
-
-      case 'ArrowLeft':
-        // Don't prevent default if Cmd/Ctrl is pressed (preserve browser shortcuts)
-        if (!event.metaKey && !event.ctrlKey) {
-          event.preventDefault();
-        }
-        // If in bottom buttons row, navigate left
-        if (bottomButtonFocused >= 0) {
-          if (bottomButtonFocused > 0) {
-            setBottomButtonFocused(prev => prev - 1);
-          } else {
-            setBottomButtonFocused(3); // Wrap around
-          }
-        }
-        // If focused on expandable item (Projects) and it's open, collapse it
-        else if (focusedIndex === 2 && navItems[2].isDropdown && projectsOpen) {
-          dispatch(setProjectsOpen(false));
-          setFocusedProjectIndex(-1);
-        }
-        // If focused on expandable item (Research) and it's open, collapse it
-        else if (focusedIndex === 3 && navItems[3].isDropdown && researchOpen) {
-          dispatch(setResearchOpen(false));
-          setFocusedResearchIndex(-1);
-        }
-        // If focused on Backstage and it's open, collapse it
-        else if (focusedIndex === navItems.length && backstageOpen) {
-          dispatch(setBackstageOpen(false));
-          setFocusedBackstageIndex(-1);
-        } else {
-          // Otherwise, switch to main focus area (wraps around)
-          const mainElement = document.querySelector('main');
-          if (mainElement) {
-            const focusableElements = mainElement.querySelectorAll('a, button, [tabindex]:not([tabindex="-1"])');
-            if (focusableElements.length > 0) {
-              dispatch(setFocusArea('main'));
-              if (mainFocusedIndex === -1) {
-                setMainFocusedIndex(0);
-              }
-            }
-          }
-        }
-        break;
-
-      case 'Enter':
-        event.preventDefault();
-        // Handle bottom button clicks
-        if (bottomButtonFocused >= 0) {
-          switch (bottomButtonFocused) {
-            case 0:
-              dispatch(toggleSidebar());
-              break;
-            case 1:
-              dispatch(setShowSettings(true));
-              break;
-            case 2:
-              dispatch(toggleSound());
-              break;
-            case 3:
-              dispatch(setShowControls(true));
-              break;
-          }
-        }
-        // Handle backstage navigation
-        else if (focusedBackstageIndex >= 0 && backstageOpen) {
-          const backstageItem = backstageItems[focusedBackstageIndex];
-          navigate(backstageItem.path);
-        }
-        // Handle project navigation
-        else if (focusedProjectIndex >= 0 && projectsOpen) {
-          const projectItem = projectItems[focusedProjectIndex];
-          navigate(projectItem.path);
-        }
-        // Handle research navigation
-        else if (focusedResearchIndex >= 0 && researchOpen) {
-          const researchItem = researchItems[focusedResearchIndex];
-          navigate(researchItem.path);
-        } else if (focusedIndex >= 0 && focusedIndex < navItems.length) {
-          const item = navItems[focusedIndex];
-          navigate(item.path);
-        } else if (focusedIndex === navItems.length) {
-          // Navigate to backstage home
-          navigate('/backstage');
-        }
-        break;
-    }
-  }, [focusedIndex, focusedProjectIndex, focusedResearchIndex, focusedBackstageIndex, projectsOpen, researchOpen, backstageOpen, backstageUnlocked, navigate, showControls, showSettings, focusArea, mainFocusedIndex, dispatch, bottomButtonFocused, sidebarVisible]);
-
+  // Set up event listener
   useEffect(() => {
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [handleKeyDown]);
 
-  // Effect to apply focus styling to main area elements
+  // Apply visual focus to main area elements
   useEffect(() => {
     const mainElement = document.querySelector('main');
     if (!mainElement) return;
@@ -602,7 +541,7 @@ export function useKeyboardNavigation() {
     
     if (focusArea === 'main') {
       focusableElements.forEach((element, index) => {
-        if (index === mainFocusedIndex) {
+        if (index === focusState.mainIndex) {
           element.classList.add('ring-2', 'ring-black', 'ring-offset-2', 'rounded');
         } else {
           element.classList.remove('ring-2', 'ring-black', 'ring-offset-2', 'rounded');
@@ -619,14 +558,13 @@ export function useKeyboardNavigation() {
         element.classList.remove('ring-2', 'ring-black', 'ring-offset-2', 'rounded');
       });
     };
-  }, [mainFocusedIndex, focusArea, location.pathname]);
+  }, [focusState.mainIndex, focusArea, location.pathname]);
 
   return {
-    focusedIndex,
-    focusedProjectIndex,
-    focusedResearchIndex,
-    focusedBackstageIndex,
-    mainFocusedIndex,
-    bottomButtonFocused,
+    focusState,
+    getFocusedSection,
+    isExpanded,
+    toggleExpansion,
+    bottomButtons,
   };
 } 

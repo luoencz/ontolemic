@@ -7,11 +7,24 @@ import SidebarItem from './sidebar/SidebarItem';
 import SidebarSection from './sidebar/SidebarSection';
 
 interface SidebarProps {
-  focusedIndex: number;
-  focusedProjectIndex: number;
-  focusedResearchIndex: number;
-  focusedBackstageIndex: number;
-  bottomButtonFocused: number;
+  keyboardNavigation: {
+    focusState: {
+      navIndex: number;
+      projectIndex: number;
+      researchIndex: number;
+      backstageIndex: number;
+      bottomButtonIndex: number;
+      mainIndex: number;
+    };
+    getFocusedSection: () => any;
+    isExpanded: (node: any) => boolean;
+    toggleExpansion: (node: any) => void;
+    bottomButtons: Array<{
+      id: string;
+      action: () => void;
+      title: string;
+    }>;
+  };
 }
 
 export const navItems = [
@@ -30,7 +43,7 @@ export const backstageItems = [
   { path: '/backstage/quotes', label: 'Quotes.yaml' },
 ];
 
-function Sidebar({ focusedIndex, focusedProjectIndex, focusedResearchIndex, focusedBackstageIndex, bottomButtonFocused }: SidebarProps) {
+function Sidebar({ keyboardNavigation }: SidebarProps) {
   const location = useLocation();
   const dispatch = useAppDispatch();
   const { sidebarVisible, soundEnabled, backstageUnlocked } = useAppSelector(state => state.ui);
@@ -38,6 +51,10 @@ function Sidebar({ focusedIndex, focusedProjectIndex, focusedResearchIndex, focu
   const researchOpen = useAppSelector(state => state.navigation.researchOpen);
   const backstageOpen = useAppSelector(state => state.navigation.backstageOpen);
   const { quote, loading } = useRandomQuote();
+  
+  // Destructure the keyboard navigation state
+  const { focusState } = keyboardNavigation;
+  const { navIndex, projectIndex, researchIndex, backstageIndex, bottomButtonIndex } = focusState;
 
   return (
     <div className={`fixed left-0 top-0 h-full w-64 p-8 flex flex-col transition-all duration-300 ease-in-out bg-white z-30 ${
@@ -60,28 +77,28 @@ function Sidebar({ focusedIndex, focusedProjectIndex, focusedResearchIndex, focu
                 label={label}
                 isOpen={path === '/projects' ? projectsOpen : researchOpen}
                 isActive={location.pathname === path}
-                isFocused={focusedIndex === index && focusedProjectIndex === -1 && focusedResearchIndex === -1 && focusedBackstageIndex === -1}
+                isFocused={navIndex === index && projectIndex === -1 && researchIndex === -1 && backstageIndex === -1}
                 onToggle={() => path === '/projects' ? dispatch(toggleProjects()) : dispatch(toggleResearch())}
               >
                 {path === '/projects' ? (
-                  projectItems.map(({ path: projectPath, label: projectLabel }, projectIndex) => (
+                  projectItems.map(({ path: projectPath, label: projectLabel }, idx) => (
                     <SidebarItem
                       key={projectPath}
                       path={projectPath}
                       label={projectLabel}
                       isActive={location.pathname === projectPath}
-                      isFocused={focusedProjectIndex === projectIndex}
+                      isFocused={projectIndex === idx}
                       isNested
                     />
                   ))
                 ) : (
-                  researchItems.map(({ path: researchPath, label: researchLabel }, researchIndex) => (
+                  researchItems.map(({ path: researchPath, label: researchLabel }, idx) => (
                     <SidebarItem
                       key={researchPath}
                       path={researchPath}
                       label={researchLabel}
                       isActive={location.pathname === researchPath}
-                      isFocused={focusedResearchIndex === researchIndex}
+                      isFocused={researchIndex === idx}
                       isNested
                     />
                   ))
@@ -92,7 +109,7 @@ function Sidebar({ focusedIndex, focusedProjectIndex, focusedResearchIndex, focu
                 path={path}
                 label={label}
                 isActive={location.pathname === path}
-                isFocused={focusedIndex === index && focusedBackstageIndex === -1}
+                isFocused={navIndex === index && backstageIndex === -1}
               />
             )}
           </div>
@@ -107,16 +124,16 @@ function Sidebar({ focusedIndex, focusedProjectIndex, focusedResearchIndex, focu
               label="// Backstage"
               isOpen={backstageOpen}
               isActive={location.pathname === '/backstage'}
-              isFocused={focusedIndex === navItems.length && focusedBackstageIndex === -1}
+              isFocused={navIndex === navItems.length && backstageIndex === -1}
               onToggle={() => dispatch(toggleBackstage())}
             >
-              {backstageItems.map(({ path: backstagePath, label: backstageLabel }, backstageIndex) => (
+              {backstageItems.map(({ path: backstagePath, label: backstageLabel }, idx) => (
                 <SidebarItem
                   key={backstagePath}
                   path={backstagePath}
                   label={backstageLabel}
                   isActive={location.pathname === backstagePath}
-                  isFocused={focusedBackstageIndex === backstageIndex}
+                  isFocused={backstageIndex === idx}
                   isNested
                 />
               ))}
@@ -130,7 +147,7 @@ function Sidebar({ focusedIndex, focusedProjectIndex, focusedResearchIndex, focu
         <button
           onClick={() => dispatch(toggleSidebar())}
           className={`w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors ${
-            bottomButtonFocused === 0 ? 'ring-2 ring-black ring-offset-1' : ''
+            bottomButtonIndex === 0 ? 'ring-2 ring-black ring-offset-1' : ''
           }`}
           title="Toggle Sidebar (⌘E)"
         >
@@ -142,7 +159,7 @@ function Sidebar({ focusedIndex, focusedProjectIndex, focusedResearchIndex, focu
         <button
           onClick={() => dispatch(setShowSettings(true))}
           className={`w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors ${
-            bottomButtonFocused === 1 ? 'ring-2 ring-black ring-offset-1' : ''
+            bottomButtonIndex === 1 ? 'ring-2 ring-black ring-offset-1' : ''
           }`}
           title="Settings (⌘S)"
         >
@@ -155,7 +172,7 @@ function Sidebar({ focusedIndex, focusedProjectIndex, focusedResearchIndex, focu
         <button
           onClick={() => dispatch(toggleSound())}
           className={`w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors ${
-            bottomButtonFocused === 2 ? 'ring-2 ring-black ring-offset-1' : ''
+            bottomButtonIndex === 2 ? 'ring-2 ring-black ring-offset-1' : ''
           }`}
           title={soundEnabled ? "Sound On (⌘M or ⌘⇧M)" : "Sound Off (⌘M or ⌘⇧M)"}
         >
@@ -174,7 +191,7 @@ function Sidebar({ focusedIndex, focusedProjectIndex, focusedResearchIndex, focu
         <button
           onClick={() => dispatch(setShowControls(true))}
           className={`w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors text-sm font-medium ${
-            bottomButtonFocused === 3 ? 'ring-2 ring-black ring-offset-1' : ''
+            bottomButtonIndex === 3 ? 'ring-2 ring-black ring-offset-1' : ''
           }`}
           title="Show keyboard controls (⌘?)"
         >

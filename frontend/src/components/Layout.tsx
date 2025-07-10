@@ -14,7 +14,7 @@ interface LayoutProps {
 
 export function Layout({ children }: LayoutProps) {
   const sidebarVisible = useAppSelector(state => state.ui.sidebarVisible);
-  const { focusedIndex, focusedProjectIndex, focusedResearchIndex, focusedBackstageIndex, bottomButtonFocused } = useKeyboardNavigation();
+  const keyboardNavigation = useKeyboardNavigation();
   const [searchOpen, setSearchOpen] = useState(false);
   
   // Enable search highlighting on all pages
@@ -37,13 +37,7 @@ export function Layout({ children }: LayoutProps) {
 
   return (
     <div className="relative min-h-screen">
-      <Sidebar 
-        focusedIndex={focusedIndex} 
-        focusedProjectIndex={focusedProjectIndex}
-        focusedResearchIndex={focusedResearchIndex}
-        focusedBackstageIndex={focusedBackstageIndex}
-        bottomButtonFocused={bottomButtonFocused}
-      />
+      <Sidebar keyboardNavigation={keyboardNavigation} />
       
       <main className={`transition-all duration-300 ease-in-out ${
         sidebarVisible ? 'ml-64' : 'ml-0'
