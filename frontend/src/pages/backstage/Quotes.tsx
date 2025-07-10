@@ -47,7 +47,7 @@ function Quotes() {
   }
 
   return (
-    <Page title="Quotes" dark>
+    <Page title="Quotes.yaml" dark>
       <div className="space-y-6">
         {quotes.map((quote, index) => (
           <blockquote 

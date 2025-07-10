@@ -5,42 +5,24 @@ function Contact() {
     <Page title="Contact">
       <div className="prose prose-sm">
         <p className="mb-6">
-          Feel free to reach out if you'd like to collaborate, discuss ideas, or just say hello.
+          This is where you can find me.
         </p>
 
         <div className="space-y-4">
           <div>
-            <h3 className="text-base font-normal mb-2">Email</h3>
-            <a href="mailto:hello@example.com" className="text-blue-600 hover:underline">
-              hello@example.com
+            <span className="text-base font-normal">Email: </span>
+            <a href="mailto:hello@xn--the-2na.space" className="text-blue-600 hover:underline">
+              hello@xn--the-2na.space
             </a>
           </div>
 
           <div>
-            <h3 className="text-base font-normal mb-2">GitHub</h3>
-            <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
-              github.com/username
-            </a>
-          </div>
-
-          <div>
-            <h3 className="text-base font-normal mb-2">LinkedIn</h3>
-            <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
-              linkedin.com/in/username
-            </a>
-          </div>
-
-          <div>
-            <h3 className="text-base font-normal mb-2">Twitter</h3>
-            <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
-              @username
+            <span className="text-base font-normal">Telegram: </span>
+            <a href="https://t.me/Luoencz" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+              @Luoencz
             </a>
           </div>
         </div>
-
-        <p className="mt-8 text-gray-600">
-          I usually respond within 24-48 hours.
-        </p>
       </div>
     </Page>
   );

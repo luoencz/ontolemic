@@ -1,7 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { toggleSidebar, toggleSound, setShowSettings, setShowControls } from '../store/slices/uiSlice';
-import { toggleProjects, toggleBackstage } from '../store/slices/navigationSlice';
+import { toggleProjects, toggleResearch, toggleBackstage } from '../store/slices/navigationSlice';
 import { useRandomQuote } from '../hooks/useRandomQuote';
 import SidebarItem from './sidebar/SidebarItem';
 import SidebarSection from './sidebar/SidebarSection';
@@ -9,33 +9,33 @@ import SidebarSection from './sidebar/SidebarSection';
 interface SidebarProps {
   focusedIndex: number;
   focusedProjectIndex: number;
+  focusedResearchIndex: number;
   focusedBackstageIndex: number;
   bottomButtonFocused: number;
 }
 
 export const navItems = [
   { path: '/about', label: 'About' },
-  { path: '/blog', label: 'Blog and Research' },
+  { path: '/blog', label: 'Blog' },
   { path: '/projects', label: 'Projects', isDropdown: true },
+  { path: '/research', label: 'Research', isDropdown: true },
   { path: '/contact', label: 'Contact' },
 ];
 
-export const projectItems = [
-  { path: '/projects/web-dev', label: 'Web Development' },
-  { path: '/projects/ai-ml', label: 'AI & Machine Learning' },
-  { path: '/projects/open-source', label: 'Open Source' },
-  { path: '/projects/research', label: 'Research Papers' },
-];
+export const projectItems: { path: string; label: string }[] = [];
+
+export const researchItems: { path: string; label: string }[] = [];
 
 export const backstageItems = [
-  { path: '/backstage/quotes', label: 'Quotes Database' },
+  { path: '/backstage/quotes', label: 'Quotes.yaml' },
 ];
 
-function Sidebar({ focusedIndex, focusedProjectIndex, focusedBackstageIndex, bottomButtonFocused }: SidebarProps) {
+function Sidebar({ focusedIndex, focusedProjectIndex, focusedResearchIndex, focusedBackstageIndex, bottomButtonFocused }: SidebarProps) {
   const location = useLocation();
   const dispatch = useAppDispatch();
   const { sidebarVisible, soundEnabled, backstageUnlocked } = useAppSelector(state => state.ui);
   const projectsOpen = useAppSelector(state => state.navigation.projectsOpen);
+  const researchOpen = useAppSelector(state => state.navigation.researchOpen);
   const backstageOpen = useAppSelector(state => state.navigation.backstageOpen);
   const { quote, loading } = useRandomQuote();
 
@@ -58,21 +58,34 @@ function Sidebar({ focusedIndex, focusedProjectIndex, focusedBackstageIndex, bot
               <SidebarSection
                 path={path}
                 label={label}
-                isOpen={projectsOpen}
+                isOpen={path === '/projects' ? projectsOpen : researchOpen}
                 isActive={location.pathname === path}
-                isFocused={focusedIndex === index && focusedProjectIndex === -1 && focusedBackstageIndex === -1}
-                onToggle={() => dispatch(toggleProjects())}
+                isFocused={focusedIndex === index && focusedProjectIndex === -1 && focusedResearchIndex === -1 && focusedBackstageIndex === -1}
+                onToggle={() => path === '/projects' ? dispatch(toggleProjects()) : dispatch(toggleResearch())}
               >
-                {projectItems.map(({ path: projectPath, label: projectLabel }, projectIndex) => (
-                  <SidebarItem
-                    key={projectPath}
-                    path={projectPath}
-                    label={projectLabel}
-                    isActive={location.pathname === projectPath}
-                    isFocused={focusedProjectIndex === projectIndex}
-                    isNested
-                  />
-                ))}
+                {path === '/projects' ? (
+                  projectItems.map(({ path: projectPath, label: projectLabel }, projectIndex) => (
+                    <SidebarItem
+                      key={projectPath}
+                      path={projectPath}
+                      label={projectLabel}
+                      isActive={location.pathname === projectPath}
+                      isFocused={focusedProjectIndex === projectIndex}
+                      isNested
+                    />
+                  ))
+                ) : (
+                  researchItems.map(({ path: researchPath, label: researchLabel }, researchIndex) => (
+                    <SidebarItem
+                      key={researchPath}
+                      path={researchPath}
+                      label={researchLabel}
+                      isActive={location.pathname === researchPath}
+                      isFocused={focusedResearchIndex === researchIndex}
+                      isNested
+                    />
+                  ))
+                )}
               </SidebarSection>
             ) : (
               <SidebarItem

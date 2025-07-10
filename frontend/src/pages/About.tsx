@@ -1,40 +1,20 @@
 import Page from '../components/Page';
+import PhotoGrid from '../components/PhotoGrid';
 
 function About() {
   return (
     <Page title="About">
       <div className="prose prose-sm">
         <p className="mb-4">
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor 
-          incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud 
-          exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+          Hi! My name is Theo. I'm an AI safety researcher and engineer, located in Tbilisi, Georgia / London, UK. Inner Space is my blog and personal website. I'm a CS major, alumni of such programs as <a href="https://www.arena.education/" target="_blank" rel="noopener noreferrer">ARENA</a>, <a href="https://espr.camp/" target="_blank" rel="noopener noreferrer">ESPR</a>, MIT OCW, <a href="https://bluedot.org/courses/alignment" target="_blank" rel="noopener noreferrer">AISF</a>, and more. I take great interest in anthropology, statistics, mathematics more generally, and philosophy — I think a lot about the nature of reality, and how we can understand it from rationalist perspective. Welcome!
         </p>
         
         <p className="mb-4">
-          Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu 
-          fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in 
-          culpa qui officia deserunt mollit anim id est laborum.
-        </p>
-
-        <h2 className="text-lg font-normal mt-8 mb-4">What I Do</h2>
-        <p className="mb-4">
-          Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque 
-          laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi 
-          architecto beatae vitae dicta sunt explicabo.
-        </p>
-
-        <h2 className="text-lg font-normal mt-8 mb-4">Currently</h2>
-        <ul className="list-disc pl-6 mb-4">
-          <li>Working on various projects</li>
-          <li>Exploring new technologies</li>
-          <li>Writing occasionally</li>
-          <li>Building things that interest me</li>
-        </ul>
-
-        <p className="mb-4">
-          If you'd like to know more, feel free to reach out.
+          My current work at <a href="https://palisaderesearch.org/" target="_blank" rel="noopener noreferrer">Palisade Research</a> is focused on building capabilitity demonstrations for agentic AI systems. We advise policy makers and other stakeholders on AI safety and alignment. I'm also a part of the APART fellowship, where we most recently have shipped a paper on AI sandbagging problem. I'm open to new opportunities, feel free to contact me at <a href="mailto:hello.work@xn--the-2na.space">hello.work@xn--the-2na.space</a>.
         </p>
       </div>
+      
+      <PhotoGrid />
     </Page>
   );
 }

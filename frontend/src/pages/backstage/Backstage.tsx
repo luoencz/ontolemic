@@ -13,7 +13,7 @@ function Backstage() {
         
         <div className="space-y-4 mb-8">
           <div className="border-l-2 border-gray-700 pl-4">
-            <h3 className="text-base font-normal mb-1 text-white">Quotes Database</h3>
+            <h3 className="text-base font-normal mb-1 text-white">Quotes.yaml</h3>
             <p className="text-gray-400 text-sm">
               A curated collection of inspiring quotes and thoughts that resonate with me.
             </p>

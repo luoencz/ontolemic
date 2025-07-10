@@ -2,8 +2,8 @@ import { useEffect, useCallback, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { toggleSidebar, toggleSound, setShowControls, setShowSettings, closeAllModals } from '../store/slices/uiSlice';
-import { setProjectsOpen, setBackstageOpen, setFocusArea } from '../store/slices/navigationSlice';
-import { navItems, projectItems, backstageItems } from '../components/Sidebar';
+import { setProjectsOpen, setResearchOpen, setBackstageOpen, setFocusArea } from '../store/slices/navigationSlice';
+import { navItems, projectItems, researchItems, backstageItems } from '../components/Sidebar';
 
 export function useKeyboardNavigation() {
   const navigate = useNavigate();
@@ -15,11 +15,13 @@ export function useKeyboardNavigation() {
   const backstageUnlocked = useAppSelector(state => state.ui.backstageUnlocked);
   const sidebarVisible = useAppSelector(state => state.ui.sidebarVisible);
   const projectsOpen = useAppSelector(state => state.navigation.projectsOpen);
+  const researchOpen = useAppSelector(state => state.navigation.researchOpen);
   const backstageOpen = useAppSelector(state => state.navigation.backstageOpen);
   const focusArea = useAppSelector(state => state.navigation.focusArea);
   
   const [focusedIndex, setFocusedIndex] = useState(-1);
   const [focusedProjectIndex, setFocusedProjectIndex] = useState(-1);
+  const [focusedResearchIndex, setFocusedResearchIndex] = useState(-1);
   const [focusedBackstageIndex, setFocusedBackstageIndex] = useState(-1);
   const [mainFocusedIndex, setMainFocusedIndex] = useState(-1);
   const [bottomButtonFocused, setBottomButtonFocused] = useState(-1);
@@ -33,7 +35,10 @@ export function useKeyboardNavigation() {
       
       const currentIndex = navItems.findIndex(item => 
         item.path === location.pathname || 
-        (item.isDropdown && location.pathname.startsWith('/projects'))
+        (item.isDropdown && (
+          location.pathname.startsWith('/projects') ||
+          location.pathname.startsWith('/research')
+        ))
       );
       if (currentIndex !== -1) {
         setFocusedIndex(currentIndex);
@@ -43,6 +48,12 @@ export function useKeyboardNavigation() {
           const currentProjectIndex = projectItems.findIndex(item => item.path === location.pathname);
           if (currentProjectIndex !== -1) {
             setFocusedProjectIndex(currentProjectIndex);
+          }
+        } else if (location.pathname.startsWith('/research/')) {
+          dispatch(setResearchOpen(true));
+          const currentResearchIndex = researchItems.findIndex(item => item.path === location.pathname);
+          if (currentResearchIndex !== -1) {
+            setFocusedResearchIndex(currentResearchIndex);
           }
         }
       } else if (location.pathname.startsWith('/backstage')) {
@@ -129,9 +140,11 @@ export function useKeyboardNavigation() {
         return;
       }
       dispatch(setProjectsOpen(false));
+      dispatch(setResearchOpen(false));
       dispatch(setBackstageOpen(false));
       setFocusedIndex(-1);
       setFocusedProjectIndex(-1);
+      setFocusedResearchIndex(-1);
       setFocusedBackstageIndex(-1);
       setBottomButtonFocused(-1);
       return;
@@ -337,7 +350,24 @@ export function useKeyboardNavigation() {
           } else {
             setFocusedProjectIndex(prev => prev - 1);
           }
+        }
+        // Handle research navigation
+        else if (researchOpen && focusedIndex === 3 && focusedResearchIndex >= 0) {
+          if (focusedResearchIndex === 0) {
+            setFocusedResearchIndex(-1);
+          } else {
+            setFocusedResearchIndex(prev => prev - 1);
+          }
+        } else if (focusedIndex === 4) {
+          // From Contact, check if Research is open
+          if (researchOpen) {
+            setFocusedIndex(3);
+            setFocusedResearchIndex(researchItems.length - 1);
+          } else {
+            setFocusedIndex(3);
+          }
         } else if (focusedIndex === 3) {
+          // From Research, check if Projects is open
           if (projectsOpen) {
             setFocusedIndex(2);
             setFocusedProjectIndex(projectItems.length - 1);
@@ -350,6 +380,7 @@ export function useKeyboardNavigation() {
           setBottomButtonFocused(3); // Start at the last button
         } else {
           setFocusedProjectIndex(-1);
+          setFocusedResearchIndex(-1);
           setFocusedBackstageIndex(-1);
           setFocusedIndex(prev => prev - 1);
         }
@@ -410,8 +441,20 @@ export function useKeyboardNavigation() {
           }
         } else if (projectsOpen && focusedIndex === 2 && focusedProjectIndex === -1) {
           setFocusedProjectIndex(0);
+        }
+        // Handle research navigation
+        else if (researchOpen && focusedIndex === 3 && focusedResearchIndex >= 0) {
+          if (focusedResearchIndex === researchItems.length - 1) {
+            setFocusedResearchIndex(-1);
+            setFocusedIndex(4);
+          } else {
+            setFocusedResearchIndex(prev => prev + 1);
+          }
+        } else if (researchOpen && focusedIndex === 3 && focusedResearchIndex === -1) {
+          setFocusedResearchIndex(0);
         } else {
           setFocusedProjectIndex(-1);
+          setFocusedResearchIndex(-1);
           setFocusedBackstageIndex(-1);
           setFocusedIndex(prev => prev + 1);
         }
@@ -433,6 +476,11 @@ export function useKeyboardNavigation() {
         // If focused on expandable item (Projects), expand it
         else if (focusedIndex === 2 && navItems[2].isDropdown && !projectsOpen) {
           dispatch(setProjectsOpen(true));
+          // Don't automatically focus first item - keep focus on the section
+        }
+        // If focused on expandable item (Research), expand it
+        else if (focusedIndex === 3 && navItems[3].isDropdown && !researchOpen) {
+          dispatch(setResearchOpen(true));
           // Don't automatically focus first item - keep focus on the section
         }
         // If focused on Backstage, expand it
@@ -471,6 +519,11 @@ export function useKeyboardNavigation() {
         else if (focusedIndex === 2 && navItems[2].isDropdown && projectsOpen) {
           dispatch(setProjectsOpen(false));
           setFocusedProjectIndex(-1);
+        }
+        // If focused on expandable item (Research) and it's open, collapse it
+        else if (focusedIndex === 3 && navItems[3].isDropdown && researchOpen) {
+          dispatch(setResearchOpen(false));
+          setFocusedResearchIndex(-1);
         }
         // If focused on Backstage and it's open, collapse it
         else if (focusedIndex === navItems.length && backstageOpen) {
@@ -519,6 +572,11 @@ export function useKeyboardNavigation() {
         else if (focusedProjectIndex >= 0 && projectsOpen) {
           const projectItem = projectItems[focusedProjectIndex];
           navigate(projectItem.path);
+        }
+        // Handle research navigation
+        else if (focusedResearchIndex >= 0 && researchOpen) {
+          const researchItem = researchItems[focusedResearchIndex];
+          navigate(researchItem.path);
         } else if (focusedIndex >= 0 && focusedIndex < navItems.length) {
           const item = navItems[focusedIndex];
           navigate(item.path);
@@ -528,7 +586,7 @@ export function useKeyboardNavigation() {
         }
         break;
     }
-  }, [focusedIndex, focusedProjectIndex, focusedBackstageIndex, projectsOpen, backstageOpen, backstageUnlocked, navigate, showControls, showSettings, focusArea, mainFocusedIndex, dispatch, bottomButtonFocused, sidebarVisible]);
+  }, [focusedIndex, focusedProjectIndex, focusedResearchIndex, focusedBackstageIndex, projectsOpen, researchOpen, backstageOpen, backstageUnlocked, navigate, showControls, showSettings, focusArea, mainFocusedIndex, dispatch, bottomButtonFocused, sidebarVisible]);
 
   useEffect(() => {
     document.addEventListener('keydown', handleKeyDown);
@@ -566,6 +624,7 @@ export function useKeyboardNavigation() {
   return {
     focusedIndex,
     focusedProjectIndex,
+    focusedResearchIndex,
     focusedBackstageIndex,
     mainFocusedIndex,
     bottomButtonFocused,

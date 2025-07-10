@@ -32,8 +32,8 @@ function Page({
   }, [dark]);
 
   const containerClasses = dark 
-    ? "bg-black text-white -m-8 min-h-screen"
-    : "";
+    ? "bg-black text-white -m-8 min-h-screen [&_a]:!underline [&_.prose_a]:!underline"
+    : "[&_a]:!underline [&_.prose_a]:!underline";
     
   const contentClasses = fullWidth
     ? "p-8"
@@ -55,7 +55,7 @@ function Page({
   }
 
   return (
-    <div className={`${contentClasses} ${className}`}>
+    <div className={`${contentClasses} ${className} ${containerClasses}`}>
       {title && <h1 className="text-2xl font-normal mb-6">{title}</h1>}
       {children}
     </div>

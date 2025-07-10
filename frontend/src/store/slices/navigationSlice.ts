@@ -2,12 +2,14 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 interface NavigationState {
   projectsOpen: boolean;
+  researchOpen: boolean;
   backstageOpen: boolean;
   focusArea: 'sidebar' | 'main';
 }
 
 const initialState: NavigationState = {
   projectsOpen: false,
+  researchOpen: false,
   backstageOpen: false,
   focusArea: 'sidebar',
 };
@@ -22,6 +24,12 @@ const navigationSlice = createSlice({
     toggleProjects: (state) => {
       state.projectsOpen = !state.projectsOpen;
     },
+    setResearchOpen: (state, action: PayloadAction<boolean>) => {
+      state.researchOpen = action.payload;
+    },
+    toggleResearch: (state) => {
+      state.researchOpen = !state.researchOpen;
+    },
     setBackstageOpen: (state, action: PayloadAction<boolean>) => {
       state.backstageOpen = action.payload;
     },
@@ -34,6 +42,6 @@ const navigationSlice = createSlice({
   },
 });
 
-export const { setProjectsOpen, toggleProjects, setBackstageOpen, toggleBackstage, setFocusArea } = navigationSlice.actions;
+export const { setProjectsOpen, toggleProjects, setResearchOpen, toggleResearch, setBackstageOpen, toggleBackstage, setFocusArea } = navigationSlice.actions;
 
 export default navigationSlice.reducer; 

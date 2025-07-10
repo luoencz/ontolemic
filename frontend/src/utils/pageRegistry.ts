@@ -1,12 +1,10 @@
 import { PageContent, extractTextFromComponent } from './searchIndex';
 import Home from '../pages/Home';
 import About from '../pages/About';
+import Blog from '../pages/Blog';
 import Contact from '../pages/Contact';
 import Projects from '../pages/Projects';
-import WebDev from '../pages/projects/WebDev';
-import AIML from '../pages/projects/AIML';
-import OpenSource from '../pages/projects/OpenSource';
-import Research from '../pages/projects/Research';
+import Research from '../pages/Research';
 import Backstage from '../pages/backstage/Backstage';
 import Quotes from '../pages/backstage/Quotes';
 
@@ -25,10 +23,10 @@ export const pageRegistry: PageContent[] = [
     component: About
   },
   {
-    title: 'Blog and Research',
+    title: 'Blog',
     path: '/blog',
     content: '',
-    component: Home // Currently using Home component for blog
+    component: Blog
   },
   {
     title: 'Contact',
@@ -43,26 +41,8 @@ export const pageRegistry: PageContent[] = [
     component: Projects
   },
   {
-    title: 'Web Development',
-    path: '/projects/web-dev',
-    content: '',
-    component: WebDev
-  },
-  {
-    title: 'AI & Machine Learning',
-    path: '/projects/ai-ml',
-    content: '',
-    component: AIML
-  },
-  {
-    title: 'Open Source',
-    path: '/projects/open-source',
-    content: '',
-    component: OpenSource
-  },
-  {
-    title: 'Research Papers',
-    path: '/projects/research',
+    title: 'Research',
+    path: '/research',
     content: '',
     component: Research
   }
@@ -77,14 +57,19 @@ const backstagePages: PageContent[] = [
     component: Backstage
   },
   {
-    title: 'Quotes Database',
+    title: 'Quotes.yaml',
     path: '/backstage/quotes',
     content: '',
     component: Quotes
   }
 ];
 
-// Initialize page content by extracting text from components
+// Initialize content by extracting text from components
+pageRegistry.forEach(page => {
+  page.content = extractTextFromComponent(page.component);
+});
+
+// Initialize page content function
 export function initializePageContent() {
   pageRegistry.forEach(page => {
     page.content = extractTextFromComponent(page.component);
