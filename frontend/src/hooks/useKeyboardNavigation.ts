@@ -25,6 +25,9 @@ export function useKeyboardNavigation() {
 
   // Set initial focus to current page
   useEffect(() => {
+    // Always reset focus to sidebar when navigating to a new page
+    dispatch(setFocusArea('sidebar'));
+    
     const currentIndex = navItems.findIndex(item => 
       item.path === location.pathname || 
       (item.isDropdown && location.pathname.startsWith('/projects'))

@@ -232,7 +232,13 @@ export function Search({ isOpen, onClose }: SearchProps) {
                 }`}>
                   {result.pagePath === '/backstage-unlock' 
                     ? result.context 
-                    : `...${highlightMatch(result.context, query)}...`
+                    : (
+                      <>
+                        <span>...</span>
+                        {highlightMatch(result.context, query)}
+                        <span>...</span>
+                      </>
+                    )
                   }
                 </div>
               </div>
