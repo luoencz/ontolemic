@@ -1,5 +1,5 @@
 import { ReactNode, useState, useEffect } from 'react';
-import { useAppSelector, useAppDispatch } from '../store/hooks';
+import { useAppSelector } from '../store/hooks';
 import { useKeyboardNavigation } from '../hooks/useKeyboardNavigation';
 import { useSearchHighlight } from '../hooks/useSearchHighlight';
 import Sidebar from './Sidebar';
@@ -13,7 +13,6 @@ interface LayoutProps {
 }
 
 export function Layout({ children }: LayoutProps) {
-  const dispatch = useAppDispatch();
   const sidebarVisible = useAppSelector(state => state.ui.sidebarVisible);
   const { focusedIndex, focusedProjectIndex, focusedBackstageIndex, bottomButtonFocused } = useKeyboardNavigation();
   const [searchOpen, setSearchOpen] = useState(false);

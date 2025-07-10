@@ -6,7 +6,6 @@ export function useSearchHighlight() {
 
   useEffect(() => {
     const searchTerm = sessionStorage.getItem('searchTerm');
-    const searchIndex = sessionStorage.getItem('searchIndex');
     
     if (searchTerm) {
       // Small delay to ensure page is rendered
