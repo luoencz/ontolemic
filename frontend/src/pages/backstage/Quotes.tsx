@@ -2,12 +2,17 @@ import { useEffect, useState } from 'react';
 import yaml from 'js-yaml';
 import Page from '../../components/Page';
 
+interface Quote {
+  text: string;
+  author: string;
+}
+
 interface QuotesData {
-  quotes: string[];
+  quotes: Quote[];
 }
 
 function Quotes() {
-  const [quotes, setQuotes] = useState<string[]>([]);
+  const [quotes, setQuotes] = useState<Quote[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -49,8 +54,8 @@ function Quotes() {
             key={index} 
             className="border-l-2 border-gray-600 pl-6 py-2 italic text-gray-100"
           >
-            <p className="mb-2">{quote}</p>
-            <cite className="text-sm text-gray-400 not-italic">— Quote {index + 1}</cite>
+            <p className="mb-2">{quote.text}</p>
+            <cite className="text-sm text-gray-400 not-italic">— {quote.author}</cite>
           </blockquote>
         ))}
       </div>

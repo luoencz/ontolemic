@@ -1,8 +1,13 @@
 import { useState, useEffect } from 'react';
 import yaml from 'js-yaml';
 
+interface Quote {
+  text: string;
+  author: string;
+}
+
 interface QuotesData {
-  quotes: string[];
+  quotes: Quote[];
 }
 
 export const useRandomQuote = () => {
@@ -17,7 +22,7 @@ export const useRandomQuote = () => {
       
       if (data.quotes && data.quotes.length > 0) {
         const randomIndex = Math.floor(Math.random() * data.quotes.length);
-        setQuote(data.quotes[randomIndex]);
+        setQuote(data.quotes[randomIndex].text);
       }
     } catch (error) {
       console.error('Error loading quotes:', error);
