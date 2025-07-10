@@ -18,7 +18,10 @@ app = FastAPI(title="Inner Cosmos API", version="1.0.0")
 # Enable CORS for frontend communication
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],  # Vite dev server
+    allow_origins=[
+        "http://localhost:5173",  # Vite dev server
+        "https://home.the-o.space",  # Canonical production domain
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
