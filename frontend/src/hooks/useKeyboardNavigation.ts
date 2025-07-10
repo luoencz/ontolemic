@@ -2,8 +2,8 @@ import { useEffect, useCallback, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { toggleSidebar, toggleSound, setShowControls, setShowSettings, closeAllModals } from '../store/slices/uiSlice';
-import { setProjectsOpen, setFocusArea } from '../store/slices/navigationSlice';
-import { navItems, projectItems } from '../components/Sidebar';
+import { setProjectsOpen, setBackstageOpen, setFocusArea } from '../store/slices/navigationSlice';
+import { navItems, projectItems, backstageItems } from '../components/Sidebar';
 
 export function useKeyboardNavigation() {
   const navigate = useNavigate();
@@ -12,11 +12,14 @@ export function useKeyboardNavigation() {
   
   const showControls = useAppSelector(state => state.ui.showControls);
   const showSettings = useAppSelector(state => state.ui.showSettings);
+  const backstageUnlocked = useAppSelector(state => state.ui.backstageUnlocked);
   const projectsOpen = useAppSelector(state => state.navigation.projectsOpen);
+  const backstageOpen = useAppSelector(state => state.navigation.backstageOpen);
   const focusArea = useAppSelector(state => state.navigation.focusArea);
   
   const [focusedIndex, setFocusedIndex] = useState(-1);
   const [focusedProjectIndex, setFocusedProjectIndex] = useState(-1);
+  const [focusedBackstageIndex, setFocusedBackstageIndex] = useState(-1);
   const [mainFocusedIndex, setMainFocusedIndex] = useState(-1);
   const [bottomButtonFocused, setBottomButtonFocused] = useState(-1);
 
@@ -35,6 +38,14 @@ export function useKeyboardNavigation() {
         if (currentProjectIndex !== -1) {
           setFocusedProjectIndex(currentProjectIndex);
         }
+      }
+    } else if (location.pathname.startsWith('/backstage')) {
+      // Handle backstage focus
+      setFocusedIndex(navItems.length); // Backstage is after all nav items
+      dispatch(setBackstageOpen(true));
+      const currentBackstageIndex = backstageItems.findIndex(item => item.path === location.pathname);
+      if (currentBackstageIndex !== -1) {
+        setFocusedBackstageIndex(currentBackstageIndex);
       }
     }
   }, [location.pathname, dispatch]);
@@ -101,8 +112,10 @@ export function useKeyboardNavigation() {
         return;
       }
       dispatch(setProjectsOpen(false));
+      dispatch(setBackstageOpen(false));
       setFocusedIndex(-1);
       setFocusedProjectIndex(-1);
+      setFocusedBackstageIndex(-1);
       setBottomButtonFocused(-1);
       return;
     }
@@ -160,6 +173,22 @@ export function useKeyboardNavigation() {
         // Handle navigation from bottom buttons
         if (bottomButtonFocused >= 0) {
           setBottomButtonFocused(-1);
+          if (backstageUnlocked) {
+            setFocusedIndex(navItems.length); // Go to Backstage
+          } else {
+            setFocusedIndex(navItems.length - 1); // Go to Contact
+          }
+        }
+        // Handle backstage navigation
+        else if (backstageOpen && focusedIndex === navItems.length && focusedBackstageIndex >= 0) {
+          if (focusedBackstageIndex === 0) {
+            setFocusedBackstageIndex(-1);
+          } else {
+            setFocusedBackstageIndex(prev => prev - 1);
+          }
+        }
+        // Navigate from backstage to last regular nav item
+        else if (focusedIndex === navItems.length && focusedBackstageIndex === -1) {
           setFocusedIndex(navItems.length - 1); // Go to Contact
         }
         // Handle projects navigation
@@ -182,17 +211,47 @@ export function useKeyboardNavigation() {
           setBottomButtonFocused(3); // Start at the last button
         } else {
           setFocusedProjectIndex(-1);
+          setFocusedBackstageIndex(-1);
           setFocusedIndex(prev => prev - 1);
         }
         break;
 
       case 'ArrowDown':
         event.preventDefault();
+        const isLastNavItem = focusedIndex === navItems.length - 1;
+        const isBackstageItem = focusedIndex === navItems.length;
+        
         // Handle navigation from nav items
-        if (focusedIndex === navItems.length - 1 && focusedProjectIndex === -1) {
-          // From Contact, go to bottom buttons
-          setFocusedIndex(-1);
-          setBottomButtonFocused(0);
+        if (isLastNavItem && focusedProjectIndex === -1) {
+          if (backstageUnlocked) {
+            // From Contact, go to Backstage
+            setFocusedIndex(navItems.length);
+          } else {
+            // From Contact, go to bottom buttons
+            setFocusedIndex(-1);
+            setBottomButtonFocused(0);
+          }
+        }
+        // Handle navigation from backstage
+        else if (isBackstageItem && focusedBackstageIndex === -1) {
+          if (backstageOpen) {
+            setFocusedBackstageIndex(0);
+          } else {
+            // Go to bottom buttons
+            setFocusedIndex(-1);
+            setBottomButtonFocused(0);
+          }
+        }
+        // Handle navigation within backstage items
+        else if (backstageOpen && isBackstageItem && focusedBackstageIndex >= 0) {
+          if (focusedBackstageIndex === backstageItems.length - 1) {
+            // From last backstage item, go to bottom buttons
+            setFocusedBackstageIndex(-1);
+            setFocusedIndex(-1);
+            setBottomButtonFocused(0);
+          } else {
+            setFocusedBackstageIndex(prev => prev + 1);
+          }
         }
         // Handle navigation from bottom buttons - loop to top
         else if (bottomButtonFocused >= 0) {
@@ -211,7 +270,8 @@ export function useKeyboardNavigation() {
           setFocusedProjectIndex(0);
         } else {
           setFocusedProjectIndex(-1);
-          setFocusedIndex(prev => prev >= navItems.length - 1 ? 0 : prev + 1);
+          setFocusedBackstageIndex(-1);
+          setFocusedIndex(prev => prev + 1);
         }
         break;
 
@@ -229,6 +289,11 @@ export function useKeyboardNavigation() {
         else if (focusedIndex === 2 && navItems[2].isDropdown && !projectsOpen) {
           dispatch(setProjectsOpen(true));
           setFocusedProjectIndex(0);
+        }
+        // If focused on Backstage, expand it
+        else if (focusedIndex === navItems.length && !backstageOpen) {
+          dispatch(setBackstageOpen(true));
+          setFocusedBackstageIndex(0);
         } else {
           // Otherwise, switch to main focus area
           const mainElement = document.querySelector('main');
@@ -258,6 +323,11 @@ export function useKeyboardNavigation() {
         else if (focusedIndex === 2 && navItems[2].isDropdown && projectsOpen) {
           dispatch(setProjectsOpen(false));
           setFocusedProjectIndex(-1);
+        }
+        // If focused on Backstage and it's open, collapse it
+        else if (focusedIndex === navItems.length && backstageOpen) {
+          dispatch(setBackstageOpen(false));
+          setFocusedBackstageIndex(-1);
         } else {
           // Otherwise, switch to main focus area (wraps around)
           const mainElement = document.querySelector('main');
@@ -292,6 +362,11 @@ export function useKeyboardNavigation() {
               break;
           }
         }
+        // Handle backstage navigation
+        else if (focusedBackstageIndex >= 0 && backstageOpen) {
+          const backstageItem = backstageItems[focusedBackstageIndex];
+          navigate(backstageItem.path);
+        }
         // Handle project navigation
         else if (focusedProjectIndex >= 0 && projectsOpen) {
           const projectItem = projectItems[focusedProjectIndex];
@@ -299,10 +374,13 @@ export function useKeyboardNavigation() {
         } else if (focusedIndex >= 0 && focusedIndex < navItems.length) {
           const item = navItems[focusedIndex];
           navigate(item.path);
+        } else if (focusedIndex === navItems.length) {
+          // Navigate to backstage home
+          navigate('/backstage');
         }
         break;
     }
-  }, [focusedIndex, focusedProjectIndex, projectsOpen, navigate, showControls, showSettings, focusArea, mainFocusedIndex, dispatch, bottomButtonFocused]);
+  }, [focusedIndex, focusedProjectIndex, focusedBackstageIndex, projectsOpen, backstageOpen, backstageUnlocked, navigate, showControls, showSettings, focusArea, mainFocusedIndex, dispatch, bottomButtonFocused]);
 
   useEffect(() => {
     document.addEventListener('keydown', handleKeyDown);
@@ -340,6 +418,7 @@ export function useKeyboardNavigation() {
   return {
     focusedIndex,
     focusedProjectIndex,
+    focusedBackstageIndex,
     mainFocusedIndex,
     bottomButtonFocused,
   };

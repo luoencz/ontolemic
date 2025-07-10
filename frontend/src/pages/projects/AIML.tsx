@@ -1,51 +1,60 @@
+import Page from '../../components/Page';
+
 function AIML() {
   return (
-    <div className="max-w-3xl">
-      <h1 className="text-2xl font-normal mb-6">AI & Machine Learning Projects</h1>
-      
+    <Page title="AI & Machine Learning Projects">
       <div className="prose prose-sm">
         <p className="mb-6">
-          Research projects, models, and experiments in artificial intelligence.
+          Research and applications in artificial intelligence, machine learning, and data science.
         </p>
 
         <div className="space-y-8">
-          <div className="border-b border-gray-200 pb-6">
-            <h3 className="text-lg font-normal mb-2">Research Project 1</h3>
-            <p className="text-gray-600 mb-3">
-              Description of an AI/ML research project or experiment you've conducted.
+          <div>
+            <h3 className="text-lg font-normal mb-2">Neural Architecture Search</h3>
+            <p className="text-gray-600 mb-2">
+              Automated system for discovering optimal neural network architectures
+              using evolutionary algorithms and reinforcement learning.
             </p>
-            <div className="flex gap-4 text-sm">
-              <span className="bg-gray-100 px-2 py-1">Python</span>
-              <span className="bg-gray-100 px-2 py-1">TensorFlow</span>
-              <span className="bg-gray-100 px-2 py-1">Jupyter</span>
+            <div className="text-sm text-gray-500">
+              <span>Tech: PyTorch, Ray, Python</span>
             </div>
           </div>
 
-          <div className="border-b border-gray-200 pb-6">
-            <h3 className="text-lg font-normal mb-2">Model Implementation</h3>
-            <p className="text-gray-600 mb-3">
-              Implementation and evaluation of a specific machine learning model or algorithm.
+          <div>
+            <h3 className="text-lg font-normal mb-2">Computer Vision for Medical Imaging</h3>
+            <p className="text-gray-600 mb-2">
+              Deep learning models for automated detection and classification of
+              anomalies in medical imaging data with 95%+ accuracy.
             </p>
-            <div className="flex gap-4 text-sm">
-              <span className="bg-gray-100 px-2 py-1">PyTorch</span>
-              <span className="bg-gray-100 px-2 py-1">scikit-learn</span>
+            <div className="text-sm text-gray-500">
+              <span>Tech: TensorFlow, OpenCV, DICOM</span>
             </div>
           </div>
 
-          <div className="pb-6">
-            <h3 className="text-lg font-normal mb-2">Data Analysis Project</h3>
-            <p className="text-gray-600 mb-3">
-              Large-scale data analysis and visualization project with machine learning insights.
+          <div>
+            <h3 className="text-lg font-normal mb-2">NLP Sentiment Analysis Engine</h3>
+            <p className="text-gray-600 mb-2">
+              Multi-language sentiment analysis system using transformer models,
+              capable of processing social media data at scale.
             </p>
-            <div className="flex gap-4 text-sm">
-              <span className="bg-gray-100 px-2 py-1">Pandas</span>
-              <span className="bg-gray-100 px-2 py-1">NumPy</span>
-              <span className="bg-gray-100 px-2 py-1">Matplotlib</span>
+            <div className="text-sm text-gray-500">
+              <span>Tech: Transformers, BERT, Apache Spark</span>
+            </div>
+          </div>
+
+          <div>
+            <h3 className="text-lg font-normal mb-2">Reinforcement Learning Game Agent</h3>
+            <p className="text-gray-600 mb-2">
+              RL agent trained to play complex strategy games using deep Q-learning
+              and policy gradient methods.
+            </p>
+            <div className="text-sm text-gray-500">
+              <span>Tech: Stable Baselines3, OpenAI Gym</span>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </Page>
   );
 }
 

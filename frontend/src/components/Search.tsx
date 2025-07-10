@@ -2,6 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { searchPages, SearchResult } from '../utils/searchIndex';
 import { getSearchablePages } from '../utils/pageRegistry';
+import { useDispatch } from 'react-redux';
+import { unlockBackstage } from '../store/slices/uiSlice';
 
 interface SearchProps {
   isOpen: boolean;
@@ -10,35 +12,91 @@ interface SearchProps {
 
 export function Search({ isOpen, onClose }: SearchProps) {
   const [query, setQuery] = useState('');
+  const [displayQuery, setDisplayQuery] = useState('');
   const [results, setResults] = useState<SearchResult[]>([]);
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const dialogRef = useRef<HTMLDialogElement>(null);
+  const [isScrambling, setIsScrambling] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
-  const resultsRefs = useRef<(HTMLLIElement | null)[]>([]);
+  const resultsRefs = useRef<(HTMLDivElement | null)[]>([]);
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const scrambleInterval = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
-    if (isOpen) {
-      dialogRef.current?.showModal();
-      inputRef.current?.focus();
+    if (isOpen && inputRef.current) {
+      inputRef.current.focus();
       setQuery('');
+      setDisplayQuery('');
       setResults([]);
       setSelectedIndex(0);
-    } else {
-      dialogRef.current?.close();
+      setIsScrambling(false);
     }
   }, [isOpen]);
 
   useEffect(() => {
     if (query.length >= 2) {
+      // Easter egg: Check for "Backstage" input
+      if (query.toLowerCase() === 'backstage') {
+        setIsScrambling(true);
+        setResults([{
+          pagePath: '/backstage-unlock',
+          pageTitle: '???',
+          text: '???',
+          context: '???',
+          index: 0
+        }]);
+        setSelectedIndex(0);
+        
+        // Start scrambling effect
+        const symbols = '!@#$%^&*()_+-={}[]|:;<>?,./~`';
+        let scrambleCount = 0;
+        
+        scrambleInterval.current = setInterval(() => {
+          const scrambled = query.split('').map(() => 
+            symbols[Math.floor(Math.random() * symbols.length)]
+          ).join('');
+          setDisplayQuery(scrambled);
+          
+          scrambleCount++;
+          if (scrambleCount > 20) {
+            clearInterval(scrambleInterval.current!);
+            setDisplayQuery('§̸̈́ͅẗ̴̰́ä̸͇́ĝ̶̱ë̵͇́');
+          }
+        }, 50);
+        
+        return;
+      }
+      
+      setIsScrambling(false);
+      if (scrambleInterval.current) {
+        clearInterval(scrambleInterval.current);
+      }
+      
       const pages = getSearchablePages();
       const searchResults = searchPages(query, pages);
       setResults(searchResults);
       setSelectedIndex(0);
     } else {
       setResults([]);
+      setIsScrambling(false);
+      if (scrambleInterval.current) {
+        clearInterval(scrambleInterval.current);
+      }
     }
+    
+    return () => {
+      if (scrambleInterval.current) {
+        clearInterval(scrambleInterval.current);
+      }
+    };
   }, [query]);
+
+  // Update display query when not scrambling
+  useEffect(() => {
+    if (!isScrambling) {
+      setDisplayQuery(query);
+    }
+  }, [query, isScrambling]);
 
   // Auto-scroll to selected item
   useEffect(() => {
@@ -77,13 +135,24 @@ export function Search({ isOpen, onClose }: SearchProps) {
         break;
       case 'Escape':
         e.preventDefault();
-        e.stopPropagation();
         handleClose();
         break;
     }
   };
 
   const navigateToResult = (result: SearchResult) => {
+    if (result.pagePath === '/backstage-unlock') {
+      // Unlock backstage
+      dispatch(unlockBackstage());
+      localStorage.setItem('backstageUnlocked', 'true');
+      handleClose();
+      // Show a subtle indication that something happened
+      setTimeout(() => {
+        navigate('/backstage/quotes');
+      }, 100);
+      return;
+    }
+    
     sessionStorage.setItem('searchTerm', query);
     sessionStorage.setItem('searchIndex', result.index.toString());
     navigate(result.pagePath);
@@ -91,94 +160,93 @@ export function Search({ isOpen, onClose }: SearchProps) {
   };
 
   return (
-    <dialog
-      ref={dialogRef}
-      onClose={handleClose}
-      className="backdrop:bg-black/30 backdrop:backdrop-blur-sm p-0 rounded-2xl shadow-2xl max-w-2xl w-[calc(100%-2rem)] bg-transparent"
-      style={{
-        margin: '0 auto',
-        marginTop: '8rem',
-        position: 'fixed',
-        top: '0'
+    <div 
+      className={`fixed inset-0 z-50 flex items-start justify-center pt-32 p-4 transition-all duration-200 ${
+        isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+      }`}
+      style={{ 
+        backgroundColor: 'rgba(0, 0, 0, 0.3)',
+        backdropFilter: 'blur(5px)',
+        WebkitBackdropFilter: 'blur(5px)'
       }}
+      onClick={handleClose}
     >
-      <form method="dialog" className="contents">
-        <article className="bg-white rounded-2xl overflow-hidden">
-          <header className="p-0">
-            <input
-              ref={inputRef}
-              name="search"
-              type="search"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="Search pages..."
-              className="w-full px-6 py-4 text-base bg-white focus:outline-none focus:ring-0 focus:border-transparent"
-              style={{
-                outline: 'none',
-                WebkitAppearance: 'none',
-                MozAppearance: 'none'
-              }}
-              autoComplete="off"
-            />
-          </header>
-          
-          {(results.length > 0 || (query.length >= 2 && results.length === 0)) && (
-            <hr className="border-gray-100" />
-          )}
-          
-          <section>
-            {results.length > 0 && (
-              <nav aria-label="Search results">
-                <ul 
-                  className="list-none m-0 p-0 overflow-y-auto"
-                  style={{ maxHeight: '24rem' }}
-                >
-                  {results.map((result, index) => (
-                    <li
-                      key={`${result.pagePath}-${result.index}`}
-                      ref={(el) => resultsRefs.current[index] = el}
-                      className="m-0 p-0"
-                    >
-                      <a
-                        href="#"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          navigateToResult(result);
-                        }}
-                        onMouseEnter={() => setSelectedIndex(index)}
-                        className={`
-                          block relative px-6 py-3 no-underline transition-colors
-                          ${index === selectedIndex ? 'bg-gray-100' : 'hover:bg-gray-50'}
-                          ${index !== 0 ? 'border-t border-gray-100' : ''}
-                        `}
-                      >
-                        {index === selectedIndex && (
-                          <span className="absolute inset-y-0 left-0 w-1 bg-black" aria-hidden="true" />
-                        )}
-                        
-                        <div className="font-medium text-sm text-gray-500 mb-1">
-                          {result.pageTitle}
-                        </div>
-                        <div className="text-gray-700 text-sm leading-relaxed">
-                          ...{highlightMatch(result.context, query)}...
-                        </div>
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              </nav>
-            )}
-            
-            {query.length >= 2 && results.length === 0 && (
-              <p className="px-6 py-4 text-sm text-gray-500 m-0">
-                No results found
-              </p>
-            )}
-          </section>
-        </article>
-      </form>
-    </dialog>
+      <div 
+        className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full mx-4 overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <input
+          ref={inputRef}
+          type="search"
+          value={displayQuery}
+          onChange={(e) => {
+            const newValue = e.target.value;
+            setQuery(newValue);
+            if (!isScrambling) {
+              setDisplayQuery(newValue);
+            }
+          }}
+          onKeyDown={handleKeyDown}
+          placeholder="Input ..."
+          className={`w-full px-6 py-4 text-base focus:outline-none focus:ring-0 focus:border-transparent ${
+            isScrambling ? 'font-mono' : ''
+          }`}
+          style={{
+            outline: 'none',
+            WebkitAppearance: 'none',
+            MozAppearance: 'none'
+          }}
+          autoComplete="off"
+          data-lpignore="true"
+          data-1p-ignore="true"
+          data-bwignore="true"
+          data-form-type="other"
+        />
+        
+        {(results.length > 0 || (query.length >= 2 && results.length === 0)) && (
+          <div className="border-t border-gray-100" />
+        )}
+        
+        {results.length > 0 && (
+          <div className="max-h-96 overflow-y-auto">
+            {results.map((result, index) => (
+              <div
+                key={`${result.pagePath}-${result.index}`}
+                ref={(el) => resultsRefs.current[index] = el}
+                onClick={() => navigateToResult(result)}
+                onMouseEnter={() => setSelectedIndex(index)}
+                className={`relative px-6 py-3 cursor-pointer transition-colors ${
+                  index === selectedIndex ? 'bg-gray-100' : 'hover:bg-gray-50'
+                } ${index !== 0 ? 'border-t border-gray-100' : ''}`}
+              >
+                {index === selectedIndex && (
+                  <div className="absolute inset-y-0 left-0 w-1 bg-black" />
+                )}
+                <div className={`font-medium text-sm ${
+                  result.pagePath === '/backstage-unlock' ? 'text-gray-800' : 'text-gray-500'
+                } mb-1`}>
+                  {result.pageTitle}
+                </div>
+                <div className={`text-sm leading-relaxed ${
+                  result.pagePath === '/backstage-unlock' ? 'text-gray-600 font-mono' : 'text-gray-700'
+                }`}>
+                  {result.pagePath === '/backstage-unlock' 
+                    ? result.context 
+                    : `...${highlightMatch(result.context, query)}...`
+                  }
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+        
+        {query.length >= 2 && results.length === 0 && !isScrambling && (
+          <div className="px-6 py-4 text-sm text-gray-500">
+            No results found
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
 

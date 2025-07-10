@@ -1,48 +1,51 @@
+import { Link } from 'react-router-dom';
+import Page from '../components/Page';
+
 function Projects() {
+  const categories = [
+    {
+      path: '/projects/web-dev',
+      title: 'Web Development',
+      description: 'Full-stack applications, APIs, and web experiences'
+    },
+    {
+      path: '/projects/ai-ml',
+      title: 'AI & Machine Learning',
+      description: 'Neural networks, data analysis, and intelligent systems'
+    },
+    {
+      path: '/projects/open-source',
+      title: 'Open Source',
+      description: 'Contributions to the developer community'
+    },
+    {
+      path: '/projects/research',
+      title: 'Research Papers',
+      description: 'Academic work and technical writing'
+    }
+  ];
+
   return (
-    <div className="max-w-3xl">
-      <h1 className="text-2xl font-normal mb-6">Projects</h1>
-      
+    <Page title="Projects">
       <div className="prose prose-sm">
-        <p className="mb-6">
-          A collection of my technical projects, research, and experiments.
+        <p className="mb-8">
+          A collection of my work across different domains of software engineering and research.
         </p>
 
-        <div className="grid gap-6 mt-8">
-          <div className="border border-gray-200 p-6">
-            <h3 className="text-lg font-normal mb-2">Web Development</h3>
-            <p className="text-gray-600 mb-3">
-              Full-stack applications, frontend frameworks, and web technologies.
-            </p>
-            <a href="/projects/web-dev" className="text-sm underline">View Projects →</a>
-          </div>
-
-          <div className="border border-gray-200 p-6">
-            <h3 className="text-lg font-normal mb-2">AI & Machine Learning</h3>
-            <p className="text-gray-600 mb-3">
-              Research projects, models, and experiments in artificial intelligence.
-            </p>
-            <a href="/projects/ai-ml" className="text-sm underline">View Projects →</a>
-          </div>
-
-          <div className="border border-gray-200 p-6">
-            <h3 className="text-lg font-normal mb-2">Open Source</h3>
-            <p className="text-gray-600 mb-3">
-              Contributions to open source projects and libraries.
-            </p>
-            <a href="/projects/open-source" className="text-sm underline">View Projects →</a>
-          </div>
-
-          <div className="border border-gray-200 p-6">
-            <h3 className="text-lg font-normal mb-2">Research Papers</h3>
-            <p className="text-gray-600 mb-3">
-              Academic publications and research documentation.
-            </p>
-            <a href="/projects/research" className="text-sm underline">View Projects →</a>
-          </div>
+        <div className="grid gap-6">
+          {categories.map(({ path, title, description }) => (
+            <Link
+              key={path}
+              to={path}
+              className="block p-6 border border-gray-200 rounded hover:border-gray-400 transition-colors no-underline"
+            >
+              <h3 className="text-lg font-normal mb-2">{title}</h3>
+              <p className="text-gray-600 text-sm m-0">{description}</p>
+            </Link>
+          ))}
         </div>
       </div>
-    </div>
+    </Page>
   );
 }
 

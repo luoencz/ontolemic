@@ -1,37 +1,35 @@
+import Page from '../components/Page';
+
 function Home() {
   return (
-    <div className="max-w-3xl">
-      <div className="mb-12">
-        <div 
-          className="w-full max-w-2xl mb-8 h-64 bg-gray-100 flex items-center justify-center text-gray-600 text-2xl font-normal border border-gray-200"
-        >
-          Inner Cosmos
-        </div>
-      </div>
-
-      <div className="prose prose-sm max-w-none">
-        <p className="mb-6">
-          Welcome to my personal corner of the internet. This is a space for thoughts, 
-          experiments, and explorations.
+    <Page title="Exploring AI, Software, and Everything In Between">
+      <div className="prose prose-sm">
+        <p className="mb-4">
+          Welcome to my corner of the internet. This is where I document my journey through
+          technology, share insights from my projects, and explore ideas that fascinate me.
         </p>
-
-        <p className="mb-6">
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor 
-          incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud 
-          exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
-        </p>
-
-        <p className="mb-6">
-          Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu 
-          fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in 
-          culpa qui officia deserunt mollit anim id est laborum.
-        </p>
-
-        <p className="mb-6">
-          Feel free to explore. Everything here is a work in progress.
+        
+        <h2 className="text-lg font-normal mt-8 mb-4">Recent Posts</h2>
+        <ul className="list-none pl-0">
+          <li className="mb-3">
+            <a href="#" className="text-blue-600 hover:underline">Understanding Neural Networks from First Principles</a>
+            <span className="text-gray-500 text-sm ml-2">Dec 2023</span>
+          </li>
+          <li className="mb-3">
+            <a href="#" className="text-blue-600 hover:underline">Building a Real-time Collaboration System</a>
+            <span className="text-gray-500 text-sm ml-2">Nov 2023</span>
+          </li>
+          <li className="mb-3">
+            <a href="#" className="text-blue-600 hover:underline">The Art of System Design</a>
+            <span className="text-gray-500 text-sm ml-2">Oct 2023</span>
+          </li>
+        </ul>
+        
+        <p className="mt-8 text-gray-600">
+          More content coming soon...
         </p>
       </div>
-    </div>
+    </Page>
   );
 }
 

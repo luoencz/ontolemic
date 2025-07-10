@@ -7,6 +7,7 @@ import WebDev from '../pages/projects/WebDev';
 import AIML from '../pages/projects/AIML';
 import OpenSource from '../pages/projects/OpenSource';
 import Research from '../pages/projects/Research';
+import Quotes from '../pages/backstage/Quotes';
 
 // Registry of all searchable pages
 export const pageRegistry: PageContent[] = [
@@ -66,9 +67,23 @@ export const pageRegistry: PageContent[] = [
   }
 ];
 
+// Backstage pages (added dynamically when unlocked)
+const backstagePages: PageContent[] = [
+  {
+    title: 'Quotes Database',
+    path: '/backstage/quotes',
+    content: '',
+    component: Quotes
+  }
+];
+
 // Initialize page content by extracting text from components
 export function initializePageContent() {
   pageRegistry.forEach(page => {
+    page.content = extractTextFromComponent(page.component);
+  });
+  
+  backstagePages.forEach(page => {
     page.content = extractTextFromComponent(page.component);
   });
 }
@@ -79,5 +94,13 @@ export function getSearchablePages(): PageContent[] {
   if (pageRegistry[0].content === '') {
     initializePageContent();
   }
+  
+  // Check if backstage is unlocked
+  const backstageUnlocked = typeof window !== 'undefined' && localStorage.getItem('backstageUnlocked') === 'true';
+  
+  if (backstageUnlocked) {
+    return [...pageRegistry, ...backstagePages];
+  }
+  
   return pageRegistry;
 } 

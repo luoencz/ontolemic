@@ -1,8 +1,8 @@
+import Page from '../components/Page';
+
 function About() {
   return (
-    <div className="max-w-3xl">
-      <h1 className="text-2xl font-normal mb-6">About</h1>
-      
+    <Page title="About">
       <div className="prose prose-sm">
         <p className="mb-4">
           Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor 
@@ -35,7 +35,7 @@ function About() {
           If you'd like to know more, feel free to reach out.
         </p>
       </div>
-    </div>
+    </Page>
   );
 }
 

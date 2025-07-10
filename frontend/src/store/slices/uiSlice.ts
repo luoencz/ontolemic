@@ -5,6 +5,7 @@ interface UIState {
   soundEnabled: boolean;
   showControls: boolean;
   showSettings: boolean;
+  backstageUnlocked: boolean;
 }
 
 const initialState: UIState = {
@@ -12,6 +13,7 @@ const initialState: UIState = {
   soundEnabled: true,
   showControls: false,
   showSettings: false,
+  backstageUnlocked: typeof window !== 'undefined' && localStorage.getItem('backstageUnlocked') === 'true',
 };
 
 const uiSlice = createSlice({
@@ -40,6 +42,9 @@ const uiSlice = createSlice({
       state.showControls = false;
       state.showSettings = false;
     },
+    unlockBackstage: (state) => {
+      state.backstageUnlocked = true;
+    },
   },
 });
 
@@ -51,6 +56,7 @@ export const {
   setShowControls,
   setShowSettings,
   closeAllModals,
+  unlockBackstage,
 } = uiSlice.actions;
 
 export default uiSlice.reducer; 

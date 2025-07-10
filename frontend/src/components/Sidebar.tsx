@@ -1,12 +1,13 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { toggleSidebar, toggleSound, setShowSettings, setShowControls } from '../store/slices/uiSlice';
-import { toggleProjects } from '../store/slices/navigationSlice';
+import { toggleProjects, toggleBackstage } from '../store/slices/navigationSlice';
 import { useRandomQuote } from '../hooks/useRandomQuote';
 
 interface SidebarProps {
   focusedIndex: number;
   focusedProjectIndex: number;
+  focusedBackstageIndex: number;
   bottomButtonFocused: number;
 }
 
@@ -24,12 +25,16 @@ export const projectItems = [
   { path: '/projects/research', label: 'Research Papers' },
 ];
 
-function Sidebar({ focusedIndex, focusedProjectIndex, bottomButtonFocused }: SidebarProps) {
+export const backstageItems = [
+  { path: '/backstage/quotes', label: 'Quotes Database' },
+];
+
+function Sidebar({ focusedIndex, focusedProjectIndex, focusedBackstageIndex, bottomButtonFocused }: SidebarProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
-  const { sidebarVisible, soundEnabled } = useAppSelector(state => state.ui);
-  const { projectsOpen } = useAppSelector(state => state.navigation);
+  const { sidebarVisible, soundEnabled, backstageUnlocked } = useAppSelector(state => state.ui);
+  const { projectsOpen, backstageOpen } = useAppSelector(state => state.navigation);
   const { quote, loading } = useRandomQuote();
 
   return (
@@ -59,7 +64,7 @@ function Sidebar({ focusedIndex, focusedProjectIndex, bottomButtonFocused }: Sid
                   className={`flex items-center justify-between w-full py-1 text-sm hover:underline text-left select-none ${
                     location.pathname === '/projects' ? 'font-bold' : ''
                   } ${
-                    focusedIndex === index && focusedProjectIndex === -1 ? 'bg-gray-100 px-2 -mx-2 rounded' : ''
+                    focusedIndex === index && focusedProjectIndex === -1 && focusedBackstageIndex === -1 ? 'bg-gray-100 px-2 -mx-2 rounded' : ''
                   }`}
                 >
                   <span>Projects</span>
@@ -114,7 +119,7 @@ function Sidebar({ focusedIndex, focusedProjectIndex, bottomButtonFocused }: Sid
                 className={`block py-1 text-sm hover:underline ${
                   location.pathname === path ? 'font-bold' : ''
                 } ${
-                  focusedIndex === index ? 'bg-gray-100 px-2 -mx-2 rounded' : ''
+                  focusedIndex === index && focusedBackstageIndex === -1 ? 'bg-gray-100 px-2 -mx-2 rounded' : ''
                 }`}
               >
                 {label}
@@ -122,6 +127,53 @@ function Sidebar({ focusedIndex, focusedProjectIndex, bottomButtonFocused }: Sid
             )}
           </div>
         ))}
+        
+        {/* Backstage section - only visible when unlocked */}
+        {backstageUnlocked && (
+          <>
+            <div className="h-8" /> {/* Wider gap for separation */}
+            <div className="relative">
+              <button
+                onClick={() => dispatch(toggleBackstage())}
+                className={`flex items-center justify-between w-full py-1 text-sm hover:underline text-left select-none ${
+                  location.pathname.startsWith('/backstage') ? 'font-bold' : ''
+                } ${
+                  focusedIndex === navItems.length && focusedBackstageIndex === -1 ? 'bg-gray-100 px-2 -mx-2 rounded' : ''
+                }`}
+              >
+                <span>// Backstage</span>
+                <svg 
+                  className={`w-3 h-3 transition-transform duration-200 ${
+                    backstageOpen ? 'rotate-180' : 'rotate-0'
+                  }`}
+                  fill="none" 
+                  stroke="currentColor" 
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              
+              {backstageOpen && (
+                <div className="ml-4 mt-1 space-y-1">
+                  {backstageItems.map(({ path: backstagePath, label: backstageLabel }, backstageIndex) => (
+                    <Link
+                      key={backstagePath}
+                      to={backstagePath}
+                      className={`block py-1 text-sm hover:underline ${
+                        location.pathname === backstagePath ? 'font-bold' : 'text-gray-600'
+                      } ${
+                        focusedBackstageIndex === backstageIndex ? 'bg-gray-100 px-2 -mx-2 rounded' : ''
+                      }`}
+                    >
+                      {backstageLabel}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+          </>
+        )}
       </nav>
 
       {/* Bottom buttons */}
