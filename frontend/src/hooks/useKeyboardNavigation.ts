@@ -1,4 +1,4 @@
-import { useEffect, useCallback, useState } from 'react';
+import { useEffect, useCallback, useState, useRef, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { toggleSidebar, toggleSound, setShowControls, setShowSettings, closeAllModals } from '../store/slices/uiSlice';
@@ -48,6 +48,9 @@ export function useKeyboardNavigation() {
     bottomButtonIndex: -1,
     mainIndex: -1,
   });
+  
+  // Track the last location we initialized focus for
+  const lastFocusedLocation = useRef<string | null>(null);
 
   // Build navigation tree dynamically based on current state
   const buildNavigationTree = useCallback((): NavigationNode[] => {
@@ -109,15 +112,57 @@ export function useKeyboardNavigation() {
     }
   }, [dispatch, projectsOpen, researchOpen, backstageOpen]);
 
-  // Set initial focus based on current page
+  // Set initial focus based on current page - only when location or sidebar visibility changes
   useEffect(() => {
     if (!sidebarVisible) {
       dispatch(setFocusArea('main'));
+      lastFocusedLocation.current = null; // Reset when sidebar is hidden
       return;
     }
 
+    // Skip if we've already set focus for this location
+    if (lastFocusedLocation.current === location.pathname) {
+      return;
+    }
+    lastFocusedLocation.current = location.pathname;
+
     dispatch(setFocusArea('sidebar'));
-    const tree = buildNavigationTree();
+    
+
+    const tree: NavigationNode[] = navItems.map((item, index) => ({
+      id: `nav-${index}`,
+      path: item.path,
+      label: item.label,
+      expandable: item.isDropdown,
+      children: item.isDropdown ? (
+        item.path === '/projects' ? 
+          projectItems.map((proj, idx) => ({
+            id: `project-${idx}`,
+            path: proj.path,
+            label: proj.label,
+          })) :
+          researchItems.map((res, idx) => ({
+            id: `research-${idx}`,
+            path: res.path,
+            label: res.label,
+          }))
+      ) : undefined,
+    }));
+
+    // Add backstage if unlocked
+    if (backstageUnlocked) {
+      tree.push({
+        id: 'backstage',
+        path: '/backstage',
+        label: '// Backstage',
+        expandable: true,
+        children: backstageItems.map((item, idx) => ({
+          id: `backstage-${idx}`,
+          path: item.path,
+          label: item.label,
+        })),
+      });
+    }
     
     // Find current page in navigation tree
     let foundFocus = false;
@@ -137,8 +182,10 @@ export function useKeyboardNavigation() {
             }));
             
             // Auto-expand parent section
-            if (!isExpanded(node)) {
-              toggleExpansion(node);
+            switch (node.path) {
+              case '/projects': dispatch(setProjectsOpen(true)); break;
+              case '/research': dispatch(setResearchOpen(true)); break;
+              case '/backstage': dispatch(setBackstageOpen(true)); break;
             }
             foundFocus = true;
           }
@@ -149,7 +196,7 @@ export function useKeyboardNavigation() {
     if (!foundFocus) {
       setFocusState(prev => ({ ...prev, navIndex: -1 }));
     }
-  }, [location.pathname, dispatch, sidebarVisible, buildNavigationTree, isExpanded, toggleExpansion]);
+  }, [location.pathname, dispatch, sidebarVisible, backstageUnlocked]);
 
   // Helper to get currently focused section
   const getFocusedSection = useCallback(() => {
@@ -560,11 +607,11 @@ export function useKeyboardNavigation() {
     };
   }, [focusState.mainIndex, focusArea, location.pathname]);
 
-  return {
+  return useMemo(() => ({
     focusState,
     getFocusedSection,
     isExpanded,
     toggleExpansion,
     bottomButtons,
-  };
+  }), [focusState, getFocusedSection, isExpanded, toggleExpansion]);
 } 
