@@ -8,6 +8,7 @@ import WebDev from './pages/projects/WebDev';
 import AIML from './pages/projects/AIML';
 import OpenSource from './pages/projects/OpenSource';
 import Research from './pages/projects/Research';
+import Backstage from './pages/backstage/Backstage';
 import Quotes from './pages/backstage/Quotes';
 
 function App() {
@@ -26,6 +27,7 @@ function App() {
         <Route path="/projects/research" element={<Layout><Research /></Layout>} />
         
         {/* Backstage pages */}
+        <Route path="/backstage" element={<Layout><Backstage /></Layout>} />
         <Route path="/backstage/quotes" element={<Layout><Quotes /></Layout>} />
       </Routes>
     </Router>

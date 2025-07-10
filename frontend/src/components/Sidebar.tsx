@@ -1,8 +1,10 @@
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { toggleSidebar, toggleSound, setShowSettings, setShowControls } from '../store/slices/uiSlice';
 import { toggleProjects, toggleBackstage } from '../store/slices/navigationSlice';
 import { useRandomQuote } from '../hooks/useRandomQuote';
+import SidebarItem from './sidebar/SidebarItem';
+import SidebarSection from './sidebar/SidebarSection';
 
 interface SidebarProps {
   focusedIndex: number;
@@ -31,10 +33,10 @@ export const backstageItems = [
 
 function Sidebar({ focusedIndex, focusedProjectIndex, focusedBackstageIndex, bottomButtonFocused }: SidebarProps) {
   const location = useLocation();
-  const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const { sidebarVisible, soundEnabled, backstageUnlocked } = useAppSelector(state => state.ui);
-  const { projectsOpen, backstageOpen } = useAppSelector(state => state.navigation);
+  const projectsOpen = useAppSelector(state => state.navigation.projectsOpen);
+  const backstageOpen = useAppSelector(state => state.navigation.backstageOpen);
   const { quote, loading } = useRandomQuote();
 
   return (
@@ -53,77 +55,32 @@ function Sidebar({ focusedIndex, focusedProjectIndex, focusedBackstageIndex, bot
         {navItems.map(({ path, label, isDropdown }, index) => (
           <div key={path}>
             {isDropdown ? (
-              <div className="relative">
-                <Link
-                  to={path}
-                  onClick={(e) => {
-                    if (e.currentTarget === e.target) {
-                      navigate(path);
-                    }
-                  }}
-                  className={`flex items-center justify-between w-full py-1 text-sm hover:underline text-left select-none ${
-                    location.pathname === '/projects' ? 'font-bold' : ''
-                  } ${
-                    focusedIndex === index && focusedProjectIndex === -1 && focusedBackstageIndex === -1 ? 'bg-gray-100 px-2 -mx-2 rounded' : ''
-                  }`}
-                >
-                  <span>Projects</span>
-                  <button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      dispatch(toggleProjects());
-                    }}
-                    className="ml-2 p-0.5 -m-0.5 focus:outline-none"
-                    style={{ 
-                      outline: 'none',
-                      border: 'none',
-                      boxShadow: 'none',
-                      WebkitTapHighlightColor: 'transparent'
-                    }}
-                  >
-                    <svg 
-                      className={`w-3 h-3 transition-transform duration-200 ${
-                        projectsOpen ? 'rotate-180' : 'rotate-0'
-                      }`}
-                      fill="none" 
-                      stroke="currentColor" 
-                      viewBox="0 0 24 24"
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </button>
-                </Link>
-                
-                {projectsOpen && (
-                  <div className="ml-4 mt-1 space-y-1">
-                    {projectItems.map(({ path: projectPath, label: projectLabel }, projectIndex) => (
-                      <Link
-                        key={projectPath}
-                        to={projectPath}
-                        className={`block py-1 text-sm hover:underline ${
-                          location.pathname === projectPath ? 'font-bold' : 'text-gray-600'
-                        } ${
-                          focusedProjectIndex === projectIndex ? 'bg-gray-100 px-2 -mx-2 rounded' : ''
-                        }`}
-                      >
-                        {projectLabel}
-                      </Link>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ) : (
-              <Link
-                to={path}
-                className={`block py-1 text-sm hover:underline ${
-                  location.pathname === path ? 'font-bold' : ''
-                } ${
-                  focusedIndex === index && focusedBackstageIndex === -1 ? 'bg-gray-100 px-2 -mx-2 rounded' : ''
-                }`}
+              <SidebarSection
+                path={path}
+                label={label}
+                isOpen={projectsOpen}
+                isActive={location.pathname === path}
+                isFocused={focusedIndex === index && focusedProjectIndex === -1 && focusedBackstageIndex === -1}
+                onToggle={() => dispatch(toggleProjects())}
               >
-                {label}
-              </Link>
+                {projectItems.map(({ path: projectPath, label: projectLabel }, projectIndex) => (
+                  <SidebarItem
+                    key={projectPath}
+                    path={projectPath}
+                    label={projectLabel}
+                    isActive={location.pathname === projectPath}
+                    isFocused={focusedProjectIndex === projectIndex}
+                    isNested
+                  />
+                ))}
+              </SidebarSection>
+            ) : (
+              <SidebarItem
+                path={path}
+                label={label}
+                isActive={location.pathname === path}
+                isFocused={focusedIndex === index && focusedBackstageIndex === -1}
+              />
             )}
           </div>
         ))}
@@ -132,46 +89,25 @@ function Sidebar({ focusedIndex, focusedProjectIndex, focusedBackstageIndex, bot
         {backstageUnlocked && (
           <>
             <div className="h-8" /> {/* Wider gap for separation */}
-            <div className="relative">
-              <button
-                onClick={() => dispatch(toggleBackstage())}
-                className={`flex items-center justify-between w-full py-1 text-sm hover:underline text-left select-none ${
-                  location.pathname.startsWith('/backstage') ? 'font-bold' : ''
-                } ${
-                  focusedIndex === navItems.length && focusedBackstageIndex === -1 ? 'bg-gray-100 px-2 -mx-2 rounded' : ''
-                }`}
-              >
-                <span>// Backstage</span>
-                <svg 
-                  className={`w-3 h-3 transition-transform duration-200 ${
-                    backstageOpen ? 'rotate-180' : 'rotate-0'
-                  }`}
-                  fill="none" 
-                  stroke="currentColor" 
-                  viewBox="0 0 24 24"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
-              
-              {backstageOpen && (
-                <div className="ml-4 mt-1 space-y-1">
-                  {backstageItems.map(({ path: backstagePath, label: backstageLabel }, backstageIndex) => (
-                    <Link
-                      key={backstagePath}
-                      to={backstagePath}
-                      className={`block py-1 text-sm hover:underline ${
-                        location.pathname === backstagePath ? 'font-bold' : 'text-gray-600'
-                      } ${
-                        focusedBackstageIndex === backstageIndex ? 'bg-gray-100 px-2 -mx-2 rounded' : ''
-                      }`}
-                    >
-                      {backstageLabel}
-                    </Link>
-                  ))}
-                </div>
-              )}
-            </div>
+            <SidebarSection
+              path="/backstage"
+              label="// Backstage"
+              isOpen={backstageOpen}
+              isActive={location.pathname === '/backstage'}
+              isFocused={focusedIndex === navItems.length && focusedBackstageIndex === -1}
+              onToggle={() => dispatch(toggleBackstage())}
+            >
+              {backstageItems.map(({ path: backstagePath, label: backstageLabel }, backstageIndex) => (
+                <SidebarItem
+                  key={backstagePath}
+                  path={backstagePath}
+                  label={backstageLabel}
+                  isActive={location.pathname === backstagePath}
+                  isFocused={focusedBackstageIndex === backstageIndex}
+                  isNested
+                />
+              ))}
+            </SidebarSection>
           </>
         )}
       </nav>

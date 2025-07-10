@@ -7,6 +7,7 @@ import WebDev from '../pages/projects/WebDev';
 import AIML from '../pages/projects/AIML';
 import OpenSource from '../pages/projects/OpenSource';
 import Research from '../pages/projects/Research';
+import Backstage from '../pages/backstage/Backstage';
 import Quotes from '../pages/backstage/Quotes';
 
 // Registry of all searchable pages
@@ -69,6 +70,12 @@ export const pageRegistry: PageContent[] = [
 
 // Backstage pages (added dynamically when unlocked)
 const backstagePages: PageContent[] = [
+  {
+    title: 'Backstage',
+    path: '/backstage',
+    content: '',
+    component: Backstage
+  },
   {
     title: 'Quotes Database',
     path: '/backstage/quotes',
