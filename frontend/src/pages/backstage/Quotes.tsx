@@ -27,7 +27,7 @@ function Quotes() {
 
   if (loading) {
     return (
-      <Page dark className="py-12">
+      <Page dark>
         <p>Loading quotes...</p>
       </Page>
     );
@@ -35,14 +35,14 @@ function Quotes() {
 
   if (error) {
     return (
-      <Page dark className="py-12">
+      <Page dark>
         <p className="text-red-400">Error loading quotes: {error}</p>
       </Page>
     );
   }
 
   return (
-    <Page title="Quotes" dark className="py-12">
+    <Page title="Quotes" dark>
       <div className="space-y-6">
         {quotes.map((quote, index) => (
           <blockquote 

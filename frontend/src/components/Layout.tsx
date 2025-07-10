@@ -37,7 +37,7 @@ export function Layout({ children }: LayoutProps) {
   }, [searchOpen]);
 
   return (
-    <div className="relative min-h-screen bg-white">
+    <div className="relative min-h-screen">
       <Sidebar 
         focusedIndex={focusedIndex} 
         focusedProjectIndex={focusedProjectIndex}
@@ -47,7 +47,7 @@ export function Layout({ children }: LayoutProps) {
       
       <main className={`transition-all duration-300 ease-in-out ${
         sidebarVisible ? 'ml-64' : 'ml-0'
-      } p-8`}>
+      } p-8 min-h-screen`}>
         {children}
       </main>
 

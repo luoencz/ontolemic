@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import { ReactNode, useEffect } from 'react';
 
 interface PageProps {
   children: ReactNode;
@@ -19,8 +19,20 @@ function Page({
   fullWidth = false,
   dark = false 
 }: PageProps) {
+  // Set body background color for dark pages to prevent white overscroll
+  useEffect(() => {
+    if (dark) {
+      document.body.style.backgroundColor = '#000000';
+      document.documentElement.style.backgroundColor = '#000000';
+      return () => {
+        document.body.style.backgroundColor = '';
+        document.documentElement.style.backgroundColor = '';
+      };
+    }
+  }, [dark]);
+
   const containerClasses = dark 
-    ? "bg-black text-white -m-8 min-h-[calc(100vh-4rem)]"
+    ? "bg-black text-white -m-8 min-h-screen"
     : "";
     
   const contentClasses = fullWidth
@@ -30,10 +42,14 @@ function Page({
   if (dark) {
     return (
       <div className={containerClasses}>
+        {/* Extra padding at top and bottom for overscroll effect */}
+        <div className="h-8 bg-black" />
         <div className={`${contentClasses} ${className}`}>
           {title && <h1 className="text-2xl font-normal mb-6">{title}</h1>}
           {children}
         </div>
+        {/* Extra padding at bottom for overscroll effect */}
+        <div className="h-32 bg-black" />
       </div>
     );
   }
