@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { toggleSidebar, toggleSound, setShowControls, setShowSettings, closeAllModals } from '../store/slices/uiSlice';
 import { setProjectsOpen, setResearchOpen, setBackstageOpen, setFocusArea } from '../store/slices/navigationSlice';
-import { navItems, projectItems, researchItems, backstageItems } from '../components/Sidebar';
+import { navItems, projectItems, researchItems, backstageItems } from '../config/navigation';
 
 // Define navigation node structure
 interface NavigationNode {

@@ -32,31 +32,31 @@ function Page({
   }, [dark]);
 
   const containerClasses = dark 
-    ? "bg-black text-white -m-8 min-h-screen [&_a]:!underline [&_.prose_a]:!underline"
+    ? "bg-black text-white -m-4 lg:-m-8 min-h-screen [&_a]:!underline [&_.prose_a]:!underline"
     : "[&_a]:!underline [&_.prose_a]:!underline";
     
   const contentClasses = fullWidth
-    ? "p-8"
-    : "max-w-3xl mx-auto p-8";
+    ? "p-4 lg:p-8"
+    : "max-w-3xl mx-auto p-4 lg:p-8";
 
   if (dark) {
     return (
       <div className={containerClasses}>
         {/* Extra padding at top and bottom for overscroll effect */}
-        <div className="h-8 bg-black" />
+        <div className="h-4 lg:h-8 bg-black" />
         <div className={`${contentClasses} ${className}`}>
-          {title && <h1 className="text-2xl font-normal mb-6">{title}</h1>}
+          {title && <h1 className="text-xl lg:text-2xl font-normal mb-4 lg:mb-6">{title}</h1>}
           {children}
         </div>
         {/* Extra padding at bottom for overscroll effect */}
-        <div className="h-32 bg-black" />
+        <div className="h-16 lg:h-32 bg-black" />
       </div>
     );
   }
 
   return (
     <div className={`${contentClasses} ${className} ${containerClasses}`}>
-      {title && <h1 className="text-2xl font-normal mb-6">{title}</h1>}
+      {title && <h1 className="text-xl lg:text-2xl font-normal mb-4 lg:mb-6">{title}</h1>}
       {children}
     </div>
   );

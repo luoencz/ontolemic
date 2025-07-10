@@ -60,13 +60,4 @@ textarea:focus {
   outline-offset: 2px;
 }
 
-/* Mobile responsive */
-@media (max-width: 768px) {
-  .flex {
-    flex-direction: column;
-  }
   
-  .w-64 {
-    width: 100%;
-  }
-} 

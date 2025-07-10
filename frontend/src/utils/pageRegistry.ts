@@ -1,21 +1,15 @@
 import { PageContent, extractTextFromComponent } from './searchIndex';
-import Home from '../pages/Home';
 import About from '../pages/About';
 import Blog from '../pages/Blog';
 import Contact from '../pages/Contact';
 import Projects from '../pages/Projects';
 import Research from '../pages/Research';
+import NavigationPage from '../pages/NavigationPage';
 import Backstage from '../pages/backstage/Backstage';
 import Quotes from '../pages/backstage/Quotes';
 
 // Registry of all searchable pages
 export const pageRegistry: PageContent[] = [
-  {
-    title: 'Home',
-    path: '/',
-    content: '',
-    component: Home
-  },
   {
     title: 'About',
     path: '/about',
@@ -45,6 +39,12 @@ export const pageRegistry: PageContent[] = [
     path: '/research',
     content: '',
     component: Research
+  },
+  {
+    title: 'Navigation',
+    path: '/navigation',
+    content: '',
+    component: NavigationPage
   }
 ];
 

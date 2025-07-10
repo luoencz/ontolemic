@@ -5,6 +5,7 @@ import { toggleProjects, toggleResearch, toggleBackstage } from '../store/slices
 import { useRandomQuote } from '../hooks/useRandomQuote';
 import SidebarItem from './sidebar/SidebarItem';
 import SidebarSection from './sidebar/SidebarSection';
+import { navItems, projectItems, researchItems, backstageItems } from '../config/navigation';
 
 interface SidebarProps {
   keyboardNavigation: {
@@ -26,22 +27,6 @@ interface SidebarProps {
     }>;
   };
 }
-
-export const navItems = [
-  { path: '/about', label: 'About' },
-  { path: '/blog', label: 'Blog' },
-  { path: '/projects', label: 'Projects', isDropdown: true },
-  { path: '/research', label: 'Research', isDropdown: true },
-  { path: '/contact', label: 'Contact' },
-];
-
-export const projectItems: { path: string; label: string }[] = [];
-
-export const researchItems: { path: string; label: string }[] = [];
-
-export const backstageItems = [
-  { path: '/backstage/quotes', label: 'Quotes.yaml' },
-];
 
 function Sidebar({ keyboardNavigation }: SidebarProps) {
   const location = useLocation();

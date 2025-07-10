@@ -161,7 +161,7 @@ export function Search({ isOpen, onClose }: SearchProps) {
 
   return (
     <div 
-      className={`fixed inset-0 z-50 flex items-start justify-center pt-32 p-4 transition-all duration-200 ${
+      className={`fixed inset-0 z-50 flex items-start justify-center pt-20 lg:pt-32 p-4 transition-all duration-200 ${
         isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
       }`}
       style={{ 
@@ -172,7 +172,7 @@ export function Search({ isOpen, onClose }: SearchProps) {
       onClick={handleClose}
     >
       <div 
-        className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full mx-4 overflow-hidden"
+        className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full mx-2 lg:mx-4 overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         <input

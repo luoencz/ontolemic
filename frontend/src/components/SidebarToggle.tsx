@@ -6,8 +6,8 @@ function SidebarToggle() {
 
   return (
     <>
-      {/* Invisible hover zone on the left edge */}
-      <div className="fixed left-0 top-0 w-8 h-full z-40 group">
+      {/* Invisible hover zone on the left edge - desktop only */}
+      <div className="fixed left-0 top-0 w-8 h-full z-40 group hidden lg:block">
         {/* Button appears on hover */}
         <button
           onClick={() => dispatch(setSidebarVisible(true))}

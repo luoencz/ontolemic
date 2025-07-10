@@ -88,6 +88,24 @@ npm run build
 └── package.json       # Root scripts and deps
 ```
 
+## Favicon Management
+
+The favicon can be fetched from the latest release of [the-o-space/Cue](https://github.com/the-o-space/Cue):
+
+```bash
+# List available PNG files in the latest release
+npm run fetch-favicon -- --list
+
+# Download the first PNG file (default)
+npm run fetch-favicon
+
+# Download a specific PNG file by name
+npm run fetch-favicon -- gradient
+npm run fetch-favicon -- worley
+```
+
+The script will automatically download the selected PNG and update the favicon reference in `index.html`.
+
 ## Frontend Architecture
 
 The frontend uses a modular component architecture with Redux for state management:

@@ -29,14 +29,14 @@ const PhotoGrid: React.FC<PhotoGridProps> = ({ photos }) => {
   if (loadedPhotos.length === 0) return null;
 
   return (
-    <div className="my-8 grid grid-cols-2 gap-4 max-w-2xl mx-auto">
-      {/* Left column - one tall image */}
+    <div className="my-8 grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl mx-auto">
+      {/* Mobile: all images stacked, Desktop: left column - one tall image */}
       <div className="col-span-1">
         {loadedPhotos[0] && (
           <img
             src={loadedPhotos[0].src}
             alt={loadedPhotos[0].alt}
-            className="w-full h-full object-cover rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300"
+            className="w-full h-64 md:h-full object-cover rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300"
             onError={(e) => {
               const target = e.target as HTMLImageElement;
               target.style.display = 'none';
@@ -45,14 +45,14 @@ const PhotoGrid: React.FC<PhotoGridProps> = ({ photos }) => {
         )}
       </div>
       
-      {/* Right column - two smaller stacked images */}
-      <div className="col-span-1 grid grid-rows-2 gap-4">
+      {/* Mobile: images continue stacking, Desktop: right column - two smaller stacked images */}
+      <div className="col-span-1 grid grid-rows-1 md:grid-rows-2 gap-4">
         {loadedPhotos.slice(1, 3).map((photo, index) => (
           <img
             key={index}
             src={photo.src}
             alt={photo.alt}
-            className="w-full h-full object-cover rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300"
+            className="w-full h-64 md:h-full object-cover rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300"
             onError={(e) => {
               const target = e.target as HTMLImageElement;
               target.style.display = 'none';

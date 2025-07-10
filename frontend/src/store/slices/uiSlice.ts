@@ -8,8 +8,11 @@ interface UIState {
   backstageUnlocked: boolean;
 }
 
+// Check if on mobile device
+const isMobile = typeof window !== 'undefined' && window.innerWidth < 1024;
+
 const initialState: UIState = {
-  sidebarVisible: true,
+  sidebarVisible: !isMobile, // Start closed on mobile
   soundEnabled: true,
   showControls: false,
   showSettings: false,

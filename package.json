@@ -8,7 +8,8 @@
     "dev:backend": "cd backend && uv run uvicorn main:app --reload --port 8000",
     "install:all": "./setup.sh",
     "build": "cd frontend && npm run build",
-    "preview": "cd frontend && npm run preview"
+    "preview": "cd frontend && npm run preview",
+    "fetch-favicon": "node scripts/fetch-favicon.js"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"
