@@ -1,36 +1,19 @@
-import { useEffect, useState } from 'react';
-import yaml from 'js-yaml';
+import { useEffect } from 'react';
 import Page from '../../components/Page';
-
-interface Quote {
-  text: string;
-  author: string;
-}
-
-interface QuotesData {
-  quotes: Quote[];
-}
+import { useCachedContent } from '../../hooks/usePrefetch';
+import { CONTENT_KEYS, Quote } from '../../utils/contentFetchers';
 
 function Quotes() {
-  const [quotes, setQuotes] = useState<Quote[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
+  const { data: quotes, isLoading, isError, refetch } = useCachedContent<Quote[]>(CONTENT_KEYS.QUOTES);
+  
+  // If not cached yet, fetch immediately
   useEffect(() => {
-    fetch('/data/quotes.yaml')
-      .then(response => response.text())
-      .then(text => {
-        const data = yaml.load(text) as QuotesData;
-        setQuotes(data.quotes);
-        setLoading(false);
-      })
-      .catch(err => {
-        setError(err.message);
-        setLoading(false);
-      });
-  }, []);
+    if (!quotes && !isLoading && !isError) {
+      refetch();
+    }
+  }, [quotes, isLoading, isError, refetch]);
 
-  if (loading) {
+  if (isLoading) {
     return (
       <Page dark>
         <p>Loading quotes...</p>
@@ -38,10 +21,18 @@ function Quotes() {
     );
   }
 
-  if (error) {
+  if (isError) {
     return (
       <Page dark>
-        <p className="text-red-400">Error loading quotes: {error}</p>
+        <p className="text-red-400">Error loading quotes</p>
+      </Page>
+    );
+  }
+  
+  if (!quotes) {
+    return (
+      <Page dark>
+        <p>No quotes available</p>
       </Page>
     );
   }

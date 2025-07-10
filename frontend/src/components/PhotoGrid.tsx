@@ -16,12 +16,11 @@ const PhotoGrid: React.FC<PhotoGridProps> = ({ photos }) => {
     if (photos && photos.length > 0) {
       setLoadedPhotos(photos);
     } else {
-      // Default photos - you'll replace these with actual photos from public/me-photos
-      // Note: HEIC format is not supported by browsers, convert to PNG/JPG first
+      // Optimized WebP photos for web display
       const defaultPhotos: Photo[] = [
-        { src: '/me-photos/photo1.png', alt: 'Photo 1' },
-        { src: '/me-photos/photo2.png', alt: 'Photo 2' },
-        { src: '/me-photos/photo3.png', alt: 'Photo 3' }
+        { src: '/me-photos/photo1.webp', alt: 'Photo 1' },
+        { src: '/me-photos/photo2.webp', alt: 'Photo 2' },
+        { src: '/me-photos/photo3.webp', alt: 'Photo 3' }
       ];
       setLoadedPhotos(defaultPhotos);
     }

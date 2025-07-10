@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Layout } from './components/Layout';
+import { usePrefetch } from './hooks/usePrefetch';
 import Home from './pages/Home';
 import About from './pages/About';
 import Blog from './pages/Blog';
@@ -10,6 +11,9 @@ import Backstage from './pages/backstage/Backstage';
 import Quotes from './pages/backstage/Quotes';
 
 function App() {
+  // Start prefetching content in the background
+  usePrefetch();
+  
   return (
     <Router>
       <Routes>
