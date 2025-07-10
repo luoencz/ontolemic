@@ -505,24 +505,37 @@ export function useKeyboardNavigation() {
       }
     }
 
-    // ESC to close modals or collapse sections
+    // ESC to close modals or return focus to sidebar
     if (event.key === 'Escape') {
       event.preventDefault();
       if (showControls || showSettings) {
         dispatch(closeAllModals());
-      } else {
-        dispatch(setProjectsOpen(false));
-        dispatch(setResearchOpen(false));
-        dispatch(setBackstageOpen(false));
-        setFocusState({
-          navIndex: -1,
-          projectIndex: -1,
-          researchIndex: -1,
-          backstageIndex: -1,
-          bottomButtonIndex: -1,
-          mainIndex: focusState.mainIndex,
-        });
-      }
+              } else {
+          // Always return focus to sidebar unless it's not visible
+          if (sidebarVisible) {
+            dispatch(setFocusArea('sidebar'));
+            // Set focus to the current page's nav item if we can find it, otherwise first item
+            if (focusState.navIndex === -1) {
+              setFocusState(prev => ({ 
+                ...prev, 
+                navIndex: 0,
+                projectIndex: -1,
+                researchIndex: -1,
+                backstageIndex: -1,
+                bottomButtonIndex: -1,
+              }));
+            } else {
+              // Keep current nav item focused but clear child focus
+              setFocusState(prev => ({
+                ...prev,
+                projectIndex: -1,
+                researchIndex: -1,
+                backstageIndex: -1,
+                bottomButtonIndex: -1,
+              }));
+            }
+          }
+        }
       return;
     }
 
@@ -540,15 +553,19 @@ export function useKeyboardNavigation() {
     } else if (focusArea === 'sidebar' && sidebarVisible) {
       switch (event.key) {
         case 'ArrowUp':
+          event.preventDefault();
           navigateSidebar('up');
           break;
         case 'ArrowDown':
+          event.preventDefault();
           navigateSidebar('down');
           break;
         case 'ArrowLeft':
+          event.preventDefault();
           navigateSidebarHorizontal('left');
           break;
         case 'ArrowRight':
+          event.preventDefault();
           navigateSidebarHorizontal('right');
           break;
         case 'Enter':
