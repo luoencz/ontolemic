@@ -3,7 +3,13 @@ import { BlurImage } from '../../components/BlurImage';
 
 function Cue() {
   return (
-    <Page>
+    <Page
+      thumbnail={{
+        image: '/cue/cue-preview.webp',
+        title: 'Cue - Generative Art',
+        summary: 'Transform your emotions into unique visual experiences through AI-powered sentiment analysis and generative algorithms.'
+      }}
+    >
       <div className="flex flex-col items-center px-4 pt-8">
         <BlurImage
           src="/cue/cue-preview.webp" 

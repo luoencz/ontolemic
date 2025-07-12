@@ -1,12 +1,6 @@
-import { ReactNode, useEffect } from 'react';
-
-interface PageProps {
-  children: ReactNode;
-  title?: string;
-  className?: string;
-  fullWidth?: boolean;
-  dark?: boolean;
-}
+import { useEffect } from 'react';
+import { PageProps } from '../types/page';
+import { PageThumbnailProvider } from '../contexts/PageThumbnailContext';
 
 /**
  * Unified page component for consistent layout across all pages.
@@ -17,7 +11,8 @@ function Page({
   title, 
   className = '', 
   fullWidth = false,
-  dark = false 
+  dark = false,
+  thumbnail
 }: PageProps) {
   // Set body background color for dark pages to prevent white overscroll
   useEffect(() => {
@@ -39,26 +34,28 @@ function Page({
     ? "p-4 lg:p-8"
     : "max-w-3xl mx-auto p-4 lg:p-8";
 
-  if (dark) {
-    return (
-      <div className={containerClasses}>
-        {/* Extra padding at top and bottom for overscroll effect */}
-        <div className="h-4 lg:h-8 bg-black" />
-        <div className={`${contentClasses} ${className}`}>
-          {title && <h1 className="text-xl lg:text-2xl font-normal mb-4 lg:mb-6">{title}</h1>}
-          {children}
-        </div>
-        {/* Extra padding at bottom for overscroll effect */}
-        <div className="h-16 lg:h-32 bg-black" />
+  const pageContent = dark ? (
+    <div className={containerClasses}>
+      {/* Extra padding at top and bottom for overscroll effect */}
+      <div className="h-4 lg:h-8 bg-black" />
+      <div className={`${contentClasses} ${className}`}>
+        {title && <h1 className="text-xl lg:text-2xl font-normal mb-4 lg:mb-6">{title}</h1>}
+        {children}
       </div>
-    );
-  }
-
-  return (
+      {/* Extra padding at bottom for overscroll effect */}
+      <div className="h-16 lg:h-32 bg-black" />
+    </div>
+  ) : (
     <div className={`${contentClasses} ${className} ${containerClasses}`}>
       {title && <h1 className="text-xl lg:text-2xl font-normal mb-4 lg:mb-6">{title}</h1>}
       {children}
     </div>
+  );
+
+  return (
+    <PageThumbnailProvider thumbnail={thumbnail}>
+      {pageContent}
+    </PageThumbnailProvider>
   );
 }
 

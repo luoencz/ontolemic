@@ -1,5 +1,6 @@
 import Page from '../components/Page';
 import PhotoGrid from '../components/PhotoGrid';
+import { PageEmbed } from '../components/PageEmbed';
 
 function About() {
   return (
@@ -15,6 +16,15 @@ function About() {
       </div>
       
       <PhotoGrid />
+      
+      <div className="mt-8">
+        <h2 className="text-lg font-normal mb-4">Explore More</h2>
+        <div className="space-y-3">
+          <PageEmbed to="/projects" size="medium" />
+          <PageEmbed to="/blog" size="medium" />
+          <PageEmbed to="/research" size="medium" />
+        </div>
+      </div>
     </Page>
   );
 }

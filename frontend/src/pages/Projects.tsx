@@ -1,4 +1,5 @@
 import Page from '../components/Page';
+import { PageEmbed } from '../components/PageEmbed';
 
 function Projects() {
   return (
@@ -8,8 +9,13 @@ function Projects() {
           A collection of my work across different domains of software engineering and research.
         </p>
 
+        <div className="mb-8">
+          <h2 className="text-lg font-normal mb-4">Featured Projects</h2>
+          <PageEmbed to="/projects/cue" size="large" className="mb-4" />
+        </div>
+
         <div className="text-gray-600 mb-8">
-          <p>Projects showcase coming soon...</p>
+          <p>More projects coming soon...</p>
         </div>
         
         <div className="mt-8 pt-8 border-t border-gray-200">
