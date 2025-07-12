@@ -1,98 +1,77 @@
-import { PageContent, extractTextFromComponent } from './searchIndex';
-import About from '../pages/About';
-import Blog from '../pages/Blog';
-import Contact from '../pages/Contact';
-import Projects from '../pages/Projects';
-import Research from '../pages/Research';
-import NavigationPage from '../pages/NavigationPage';
-import Backstage from '../pages/backstage/Backstage';
-import Quotes from '../pages/backstage/Quotes';
+// Page registry with dynamic imports for code splitting
+export interface PageInfo {
+  title: string;
+  path: string;
+  loader: () => Promise<any>;
+}
 
-// Registry of all searchable pages
-export const pageRegistry: PageContent[] = [
+// Registry of all searchable pages with dynamic imports
+export const pageRegistry: PageInfo[] = [
   {
     title: 'About',
     path: '/about',
-    content: '',
-    component: About
+    loader: () => import('../pages/About')
   },
   {
     title: 'Blog',
     path: '/blog',
-    content: '',
-    component: Blog
+    loader: () => import('../pages/Blog')
   },
   {
     title: 'Contact',
     path: '/contact',
-    content: '',
-    component: Contact
+    loader: () => import('../pages/Contact')
   },
   {
     title: 'Projects',
     path: '/projects',
-    content: '',
-    component: Projects
+    loader: () => import('../pages/Projects')
   },
   {
     title: 'Research',
     path: '/research',
-    content: '',
-    component: Research
+    loader: () => import('../pages/Research')
   },
   {
     title: 'Navigation',
     path: '/navigation',
-    content: '',
-    component: NavigationPage
+    loader: () => import('../pages/NavigationPage')
   }
 ];
 
 // Backstage pages (added dynamically when unlocked)
-const backstagePages: PageContent[] = [
+const backstagePages: PageInfo[] = [
   {
     title: 'Backstage',
     path: '/backstage',
-    content: '',
-    component: Backstage
+    loader: () => import('../pages/backstage/Backstage')
   },
   {
     title: 'Quotes.yaml',
     path: '/backstage/quotes',
-    content: '',
-    component: Quotes
+    loader: () => import('../pages/backstage/Quotes')
   }
 ];
 
-// Initialize content by extracting text from components
-pageRegistry.forEach(page => {
-  page.content = extractTextFromComponent(page.component);
-});
-
-// Initialize page content function
-export function initializePageContent() {
-  pageRegistry.forEach(page => {
-    page.content = extractTextFromComponent(page.component);
-  });
-  
-  backstagePages.forEach(page => {
-    page.content = extractTextFromComponent(page.component);
-  });
-}
-
-// Get page content for search
-export function getSearchablePages(): PageContent[] {
-  // Ensure content is initialized
-  if (pageRegistry[0].content === '') {
-    initializePageContent();
+// Project pages
+const projectPages: PageInfo[] = [
+  {
+    title: 'Cue',
+    path: '/projects/cue',
+    loader: () => import('../pages/projects/Cue')
   }
-  
+];
+
+// Get all searchable pages
+export function getSearchablePages(): PageInfo[] {
   // Check if backstage is unlocked
   const backstageUnlocked = typeof window !== 'undefined' && localStorage.getItem('backstageUnlocked') === 'true';
   
+  const allPages = [...pageRegistry, ...projectPages];
+  
   if (backstageUnlocked) {
-    return [...pageRegistry, ...backstagePages];
+    return [...allPages, ...backstagePages];
   }
   
-  return pageRegistry;
+  return allPages;
 } 

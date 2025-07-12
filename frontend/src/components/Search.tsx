@@ -16,6 +16,7 @@ export function Search({ isOpen, onClose }: SearchProps) {
   const [results, setResults] = useState<SearchResult[]>([]);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [isScrambling, setIsScrambling] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const resultsRefs = useRef<(HTMLDivElement | null)[]>([]);
   const navigate = useNavigate();
@@ -72,10 +73,20 @@ export function Search({ isOpen, onClose }: SearchProps) {
         clearInterval(scrambleInterval.current);
       }
       
-      const pages = getSearchablePages();
-      const searchResults = searchPages(query, pages);
-      setResults(searchResults);
-      setSelectedIndex(0);
+      // Perform async search
+      const performSearch = async () => {
+        setIsSearching(true);
+        try {
+          const pages = getSearchablePages();
+          const searchResults = await searchPages(query, pages);
+          setResults(searchResults);
+          setSelectedIndex(0);
+        } finally {
+          setIsSearching(false);
+        }
+      };
+      
+      performSearch();
     } else {
       setResults([]);
       setIsScrambling(false);
@@ -246,7 +257,7 @@ export function Search({ isOpen, onClose }: SearchProps) {
           </div>
         )}
         
-        {query.length >= 2 && results.length === 0 && !isScrambling && (
+        {query.length >= 2 && results.length === 0 && !isScrambling && !isSearching && (
           <div className="px-6 py-4 text-sm text-gray-500">
             No results found
           </div>

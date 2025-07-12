@@ -1,5 +1,6 @@
-import { ReactElement } from 'react';
+import React from 'react';
 import ReactDOMServer from 'react-dom/server';
+import { PageInfo } from './pageRegistry';
 
 export interface SearchResult {
   pageTitle: string;
@@ -9,17 +10,11 @@ export interface SearchResult {
   index: number;
 }
 
-export interface PageContent {
-  title: string;
-  path: string;
-  content: string;
-  component: () => ReactElement;
-}
-
 // Extract text content from a React component
-export function extractTextFromComponent(component: () => ReactElement): string {
+export function extractTextFromComponent(component: React.ComponentType): string {
   try {
-    const html = ReactDOMServer.renderToStaticMarkup(component());
+    const element = React.createElement(component);
+    const html = ReactDOMServer.renderToStaticMarkup(element);
     // Remove HTML tags and normalize whitespace
     return html
       .replace(/<[^>]*>/g, ' ')
@@ -31,15 +26,49 @@ export function extractTextFromComponent(component: () => ReactElement): string 
   }
 }
 
-// Search for text in all pages
-export function searchPages(query: string, pages: PageContent[]): SearchResult[] {
+// Cache for loaded page content
+const contentCache = new Map<string, string>();
+
+// Load and extract content from a page
+async function loadPageContent(page: PageInfo): Promise<string> {
+  // Check cache first
+  if (contentCache.has(page.path)) {
+    return contentCache.get(page.path)!;
+  }
+
+  try {
+    const module = await page.loader();
+    const Component = module.default;
+    const content = extractTextFromComponent(Component);
+    
+    // Cache the content
+    contentCache.set(page.path, content);
+    
+    return content;
+  } catch (error) {
+    console.error(`Error loading page ${page.path}:`, error);
+    return '';
+  }
+}
+
+// Search for text in all pages (async version)
+export async function searchPages(query: string, pages: PageInfo[]): Promise<SearchResult[]> {
   if (!query || query.length < 2) return [];
   
   const results: SearchResult[] = [];
   const lowerQuery = query.toLowerCase();
   
-  pages.forEach(page => {
-    const lowerContent = page.content.toLowerCase();
+  // Load all page content in parallel
+  const pageContents = await Promise.all(
+    pages.map(async (page) => ({
+      page,
+      content: await loadPageContent(page)
+    }))
+  );
+  
+  // Search through loaded content
+  pageContents.forEach(({ page, content }) => {
+    const lowerContent = content.toLowerCase();
     let startIndex = 0;
     
     while (true) {
@@ -48,13 +77,13 @@ export function searchPages(query: string, pages: PageContent[]): SearchResult[]
       
       // Extract context around the match
       const contextStart = Math.max(0, index - 50);
-      const contextEnd = Math.min(page.content.length, index + query.length + 50);
-      const context = page.content.slice(contextStart, contextEnd);
+      const contextEnd = Math.min(content.length, index + query.length + 50);
+      const context = content.slice(contextStart, contextEnd);
       
       results.push({
         pageTitle: page.title,
         pagePath: page.path,
-        text: page.content.slice(index, index + query.length),
+        text: content.slice(index, index + query.length),
         context: context,
         index: index
       });
