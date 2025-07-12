@@ -1,18 +1,6 @@
-import { useEffect } from 'react';
 import Page from '../components/Page';
-import { useCachedContent } from '../hooks/usePrefetch';
-import { CONTENT_KEYS } from '../utils/contentFetchers';
 
 function Blog() {
-  const { data: posts, isLoading, refetch } = useCachedContent<any[]>(CONTENT_KEYS.BLOG_POSTS);
-  
-  // If not cached yet, fetch immediately
-  useEffect(() => {
-    if (!posts && !isLoading) {
-      refetch();
-    }
-  }, [posts, isLoading, refetch]);
-
   return (
     <Page title="Blog">
       <div className="prose prose-sm">

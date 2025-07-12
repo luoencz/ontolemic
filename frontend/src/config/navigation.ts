@@ -17,7 +17,9 @@ export const navItems: NavItem[] = [
   { path: '/contact', label: 'Contact' },
 ];
 
-export const projectItems: SubNavItem[] = [];
+export const projectItems: SubNavItem[] = [
+  { path: '/projects/cue', label: 'Cue' },
+];
 
 export const researchItems: SubNavItem[] = [];
 

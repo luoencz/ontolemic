@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { BlurImage } from './BlurImage';
 
 interface Photo {
   src: string;
@@ -33,14 +34,12 @@ const PhotoGrid: React.FC<PhotoGridProps> = ({ photos }) => {
       {/* Mobile: all images stacked, Desktop: left column - one tall image */}
       <div className="col-span-1">
         {loadedPhotos[0] && (
-          <img
+          <BlurImage
             src={loadedPhotos[0].src}
             alt={loadedPhotos[0].alt}
-            className="w-full h-64 md:h-full object-cover rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300"
-            onError={(e) => {
-              const target = e.target as HTMLImageElement;
-              target.style.display = 'none';
-            }}
+            className="rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300"
+            aspectRatio="3/4"
+            placeholderColor="#f3f4f6"
           />
         )}
       </div>
@@ -48,15 +47,13 @@ const PhotoGrid: React.FC<PhotoGridProps> = ({ photos }) => {
       {/* Mobile: images continue stacking, Desktop: right column - two smaller stacked images */}
       <div className="col-span-1 grid grid-rows-1 md:grid-rows-2 gap-4">
         {loadedPhotos.slice(1, 3).map((photo, index) => (
-          <img
+          <BlurImage
             key={index}
             src={photo.src}
             alt={photo.alt}
-            className="w-full h-64 md:h-full object-cover rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300"
-            onError={(e) => {
-              const target = e.target as HTMLImageElement;
-              target.style.display = 'none';
-            }}
+            className="rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300"
+            aspectRatio="4/3"
+            placeholderColor="#f3f4f6"
           />
         ))}
       </div>

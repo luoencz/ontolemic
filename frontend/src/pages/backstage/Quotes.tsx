@@ -1,17 +1,28 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Page from '../../components/Page';
-import { useCachedContent } from '../../hooks/usePrefetch';
-import { CONTENT_KEYS, Quote } from '../../utils/contentFetchers';
+import { Quote, fetchQuotesData } from '../../utils/contentFetchers';
 
 function Quotes() {
-  const { data: quotes, isLoading, isError, refetch } = useCachedContent<Quote[]>(CONTENT_KEYS.QUOTES);
+  const [quotes, setQuotes] = useState<Quote[] | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   
-  // If not cached yet, fetch immediately
   useEffect(() => {
-    if (!quotes && !isLoading && !isError) {
-      refetch();
-    }
-  }, [quotes, isLoading, isError, refetch]);
+    const loadQuotes = async () => {
+      try {
+        setIsLoading(true);
+        const data = await fetchQuotesData();
+        setQuotes(data);
+      } catch (err) {
+        setError('Failed to load quotes');
+        console.error('Error loading quotes:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    loadQuotes();
+  }, []);
 
   if (isLoading) {
     return (
@@ -21,15 +32,15 @@ function Quotes() {
     );
   }
 
-  if (isError) {
+  if (error) {
     return (
       <Page dark>
-        <p className="text-red-400">Error loading quotes</p>
+        <p className="text-red-400">{error}</p>
       </Page>
     );
   }
   
-  if (!quotes) {
+  if (!quotes || quotes.length === 0) {
     return (
       <Page dark>
         <p>No quotes available</p>

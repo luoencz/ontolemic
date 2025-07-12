@@ -8,7 +8,6 @@ import MobileNav from './MobileNav';
 import ControlsModal from './modals/ControlsModal';
 import SettingsModal from './modals/SettingsModal';
 import { Search } from './Search';
-import { PrefetchIndicator } from './PrefetchIndicator';
 
 interface LayoutProps {
   children: ReactNode;
@@ -65,9 +64,6 @@ export function Layout({ children }: LayoutProps) {
       {/* Modals */}
       <ControlsModal />
       <SettingsModal />
-      
-      {/* Prefetch indicator */}
-      <PrefetchIndicator />
     </div>
   );
 } 
