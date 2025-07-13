@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import Page from '../../components/Page';
+import Page from '../../components/pages/Page';
 import { Quote, fetchQuotesData } from '../../utils/contentFetchers';
 
 function Quotes() {

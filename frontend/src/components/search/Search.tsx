@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { searchPages, SearchResult } from '../utils/searchIndex';
-import { getSearchablePages } from '../utils/pageRegistry';
+import { searchPages, SearchResult } from '../../utils/searchIndex';
+import { getSearchablePages } from '../../utils/pageRegistry';
 import { useDispatch } from 'react-redux';
-import { unlockBackstage } from '../store/slices/uiSlice';
+import { unlockBackstage } from '../../store/slices/uiSlice';
 
 interface SearchProps {
   isOpen: boolean;

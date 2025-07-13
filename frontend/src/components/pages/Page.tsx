@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
-import { PageProps } from '../types/page';
-import { PageThumbnailProvider } from '../contexts/PageThumbnailContext';
+import { PageProps } from '../../types/page';
+import { PageThumbnailProvider } from '../../contexts/PageThumbnailContext';
 
 /**
  * Unified page component for consistent layout across all pages.

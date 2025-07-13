@@ -1,5 +1,5 @@
-import Page from '../components/Page';
-import { PageEmbed } from '../components/PageEmbed';
+import Page from '../components/pages/Page';
+import { PageEmbed } from '../components/pages/PageEmbed';
 
 function Projects() {
   return (

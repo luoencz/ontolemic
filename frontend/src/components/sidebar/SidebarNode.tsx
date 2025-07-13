@@ -21,7 +21,7 @@ function SidebarNode({ node, depth, isFocused, focusedPath }: SidebarNodeProps) 
   const isActive = node.path === location.pathname;
   
   // Calculate indentation based on depth
-  const indentClass = depth > 0 ? `ml-${Math.min(depth * 4, 12)}` : '';
+  const indentStyle = depth > 0 ? { marginLeft: `${depth * 1}rem` } : {};
   
   // Check if any child is focused
   const childFocusIndex = focusedPath.findIndex(id => id === node.id);
@@ -42,14 +42,40 @@ function SidebarNode({ node, depth, isFocused, focusedPath }: SidebarNodeProps) 
   };
 
   return (
-    <div className={indentClass} data-node-id={node.id}>
+    <div style={indentStyle} data-node-id={node.id}>
       <div
-        className={`flex items-center justify-between w-full py-1 text-sm no-underline hover:underline text-left select-none ${
+        className={`flex items-center w-full py-1 text-sm no-underline hover:underline text-left select-none ${
           isActive ? 'font-bold' : ''
-        } ${
-          isFocused ? 'bg-gray-100 px-2 -mx-2 rounded' : ''
         }`}
       >
+        <div className="w-4 h-4 mr-1.5 flex items-center justify-center flex-shrink-0">
+          {hasChildren ? (
+            <button
+              onClick={handleToggle}
+              className="p-0 focus:outline-none"
+              style={{ 
+                outline: 'none',
+                border: 'none',
+                boxShadow: 'none',
+                WebkitTapHighlightColor: 'transparent'
+              }}
+            >
+              <svg 
+                className={`w-3 h-3 transition-transform duration-200 ${
+                  isExpanded ? 'rotate-180' : 'rotate-0'
+                }`}
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+          ) : (
+            <span className="text-gray-400">—</span>
+          )}
+        </div>
+        
         {node.path ? (
           <Link
             to={node.path}
@@ -64,28 +90,8 @@ function SidebarNode({ node, depth, isFocused, focusedPath }: SidebarNodeProps) 
           </span>
         )}
         
-        {hasChildren && (
-          <button
-            onClick={handleToggle}
-            className="ml-2 p-0.5 -m-0.5 focus:outline-none"
-            style={{ 
-              outline: 'none',
-              border: 'none',
-              boxShadow: 'none',
-              WebkitTapHighlightColor: 'transparent'
-            }}
-          >
-            <svg 
-              className={`w-3 h-3 transition-transform duration-200 ${
-                isExpanded ? 'rotate-180' : 'rotate-0'
-              }`}
-              fill="none" 
-              stroke="currentColor" 
-              viewBox="0 0 24 24"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
-          </button>
+        {isFocused && (
+          <span className="ml-2 text-gray-400">{'<'}</span>
         )}
       </div>
       

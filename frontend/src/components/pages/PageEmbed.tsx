@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { PageThumbnail } from './PageThumbnail';
-import { PageThumbnail as PageThumbnailType } from '../types/page';
-import { getPageThumbnail } from '../utils/thumbnailGenerator';
-import { getSearchablePages } from '../utils/pageRegistry';
+import { PageThumbnail as PageThumbnailType } from '../../types/page';
+import { getPageThumbnail } from '../../utils/thumbnailGenerator';
+import { getSearchablePages } from '../../utils/pageRegistry';
 
 interface PageEmbedProps {
   to: string;

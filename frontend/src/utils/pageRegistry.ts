@@ -46,11 +46,6 @@ export const pageRegistry: PageMetadata[] = [
       summary: 'Academic papers, technical writing, and research explorations in AI safety and related fields.'
     }
   },
-  {
-    title: 'Navigation',
-    path: '/navigation',
-    loader: () => import('../pages/NavigationPage')
-  }
 ];
 
 // Backstage pages (added dynamically when unlocked)

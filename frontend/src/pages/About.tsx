@@ -1,6 +1,6 @@
-import Page from '../components/Page';
-import Gallery from '../components/Gallery';
-import { PageEmbed } from '../components/PageEmbed';
+import Page from '../components/pages/Page';
+import Gallery from '../components/common/Gallery';
+import { PageEmbed } from '../components/pages/PageEmbed';
 
 function About() {
   const aboutPageLayout = {

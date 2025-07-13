@@ -1,11 +1,11 @@
 import { Link } from 'react-router-dom';
-import { useAppDispatch, useAppSelector } from '../store/hooks';
-import { toggleSidebar, toggleSound, setShowSettings, setShowControls } from '../store/slices/uiSlice';
-import { useRandomQuote } from '../hooks/useRandomQuote';
-import SidebarNode from './sidebar/SidebarNode';
-import { navigationTree, backstageTree } from '../config/navigation';
+import { useAppDispatch, useAppSelector } from '../../store/hooks';
+import { toggleSidebar, toggleSound, setShowSettings, setShowControls } from '../../store/slices/uiSlice';
+import { useRandomQuote } from '../../hooks/useRandomQuote';
+import SidebarNode from '../sidebar/SidebarNode';
+import { navigationTree, backstageTree } from '../../config/navigation';
 
-interface SidebarProps {
+interface NavigationContentProps {
   keyboardNavigation: {
     sidebarFocusIndex: number;
     bottomButtonIndex: number;
@@ -24,9 +24,9 @@ interface SidebarProps {
   };
 }
 
-function Sidebar({ keyboardNavigation }: SidebarProps) {
+function NavigationContent({ keyboardNavigation }: NavigationContentProps) {
   const dispatch = useAppDispatch();
-  const { sidebarVisible, soundEnabled, backstageUnlocked } = useAppSelector(state => state.ui);
+  const { soundEnabled, backstageUnlocked } = useAppSelector(state => state.ui);
   const { quote } = useRandomQuote();
   
   // Destructure the keyboard navigation state
@@ -40,9 +40,7 @@ function Sidebar({ keyboardNavigation }: SidebarProps) {
   }
 
   return (
-    <div className={`fixed left-0 top-0 h-full w-64 p-8 flex flex-col transition-all duration-300 ease-in-out bg-white z-30 ${
-      sidebarVisible ? 'translate-x-0' : '-translate-x-full'
-    }`}>
+    <div className="h-full flex flex-col p-8">
       <Link to="/" className="text-2xl font-normal no-underline hover:underline">
         Inner Cosmos
       </Link>
@@ -51,7 +49,7 @@ function Sidebar({ keyboardNavigation }: SidebarProps) {
         {quote}
       </p>
 
-      <nav className="space-y-2 flex-1">
+      <nav className="space-y-2 flex-1 overflow-y-auto">
         {navigationTree.map((node) => {
           const nodeIndex = visibleNodes.findIndex(n => n.node.id === node.id && n.depth === 0);
           return (
@@ -139,4 +137,4 @@ function Sidebar({ keyboardNavigation }: SidebarProps) {
   );
 }
 
-export default Sidebar; 
+export default NavigationContent; 

@@ -1,5 +1,5 @@
-import Page from '../../components/Page';
-import { BlurImage } from '../../components/BlurImage';
+import Page from '../../components/pages/Page';
+import { BlurImage } from '../../components/common/BlurImage';
 
 function Cue() {
   return (

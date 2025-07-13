@@ -1,5 +1,5 @@
-import { useAppDispatch } from '../store/hooks';
-import { setSidebarVisible } from '../store/slices/uiSlice';
+import { useAppDispatch } from '../../store/hooks';
+import { setSidebarVisible } from '../../store/slices/uiSlice';
 
 function SidebarToggle() {
   const dispatch = useAppDispatch();

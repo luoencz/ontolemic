@@ -8,7 +8,6 @@ const Blog = lazy(() => import('./pages/Blog'));
 const Contact = lazy(() => import('./pages/Contact'));
 const Projects = lazy(() => import('./pages/Projects'));
 const Research = lazy(() => import('./pages/Research'));
-const NavigationPage = lazy(() => import('./pages/NavigationPage'));
 const Backstage = lazy(() => import('./pages/backstage/Backstage'));
 const Quotes = lazy(() => import('./pages/backstage/Quotes'));
 const Cue = lazy(() => import('./pages/projects/Cue'));
@@ -27,7 +26,6 @@ function App() {
           <Route path="contact" element={<Contact />} />
           <Route path="projects" element={<Projects />} />
           <Route path="research" element={<Research />} />
-          <Route path="navigation" element={<NavigationPage />} />
           
           {/* Project pages */}
           <Route path="projects/cue" element={<Cue />} />

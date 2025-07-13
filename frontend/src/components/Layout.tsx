@@ -3,12 +3,13 @@ import { Outlet } from 'react-router-dom';
 import { useAppSelector } from '../store/hooks';
 import { useKeyboardNavigation } from '../hooks/useKeyboardNavigation';
 import { useSearchHighlight } from '../hooks/useSearchHighlight';
-import Sidebar from './Sidebar';
-import SidebarToggle from './SidebarToggle';
-import MobileNav from './MobileNav';
+import DesktopNavigationWrapper from './navigation/DesktopNavigationWrapper';
+import SidebarToggle from './sidebar/SidebarToggle';
+import MobileNav from './navigation/MobileNav';
+import MobileNavigationWrapper from './navigation/MobileNavigationWrapper';
 import ControlsModal from './modals/ControlsModal';
 import SettingsModal from './modals/SettingsModal';
-import { Search } from './Search';
+import { Search } from './search/Search';
 
 const PageContentLoader = () => (
   <div className="flex items-center justify-center w-full" style={{ minHeight: 'calc(100vh - 12rem)'}}>
@@ -43,9 +44,12 @@ export function Layout() {
       {/* Mobile navigation */}
       <MobileNav />
       
-      {/* Sidebar - desktop only */}
+      {/* Mobile navigation wrapper - full screen modal */}
+      <MobileNavigationWrapper keyboardNavigation={keyboardNavigation} />
+      
+      {/* Desktop sidebar */}
       <div className="hidden lg:block">
-        <Sidebar keyboardNavigation={keyboardNavigation} />
+        <DesktopNavigationWrapper keyboardNavigation={keyboardNavigation} />
       </div>
       
       {/* Main content - responsive margins */}

@@ -1,4 +1,4 @@
-import { PageThumbnail as PageThumbnailType } from '../types/page';
+import { PageThumbnail as PageThumbnailType } from '../../types/page';
 
 interface PageThumbnailProps {
   thumbnail: PageThumbnailType;
