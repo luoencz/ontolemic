@@ -280,42 +280,110 @@ export function useKeyboardNavigation() {
     const current = mainFocusIndex >= 0 && mainFocusIndex < elements.length ? 
                    elements[mainFocusIndex] : null;
 
-    // Calculate angle between two points (in degrees, 0° is right, 90° is down)
-    const getAngle = (from: { x: number; y: number }, to: { x: number; y: number }) => {
-      const dx = to.x - from.x;
-      const dy = to.y - from.y;
-      let angle = Math.atan2(dy, dx) * (180 / Math.PI);
-      // Normalize to 0-360
-      if (angle < 0) angle += 360;
-      return angle;
-    };
+    // Get the closest point on target element to the current element based on direction
+    const getClosestPoint = (fromRect: DOMRect, toRect: DOMRect, direction: string) => {
+      let fromX: number, fromY: number;
+      let toX: number, toY: number;
 
-    // Check if angle is within a sector (handles wrap-around at 0/360)
-    const isAngleInSector = (angle: number, sectorCenter: number, sectorWidth: number) => {
-      const halfWidth = sectorWidth / 2;
-      let diff = Math.abs(angle - sectorCenter);
-      if (diff > 180) diff = 360 - diff;
-      return diff <= halfWidth;
-    };
+      switch (direction) {
+        case 'ArrowRight':
+          // From right edge of current to left edge of target
+          fromX = fromRect.right;
+          fromY = fromRect.top + fromRect.height / 2;
+          toX = toRect.left;
+          // Find the Y coordinate on target's left edge closest to fromY
+          toY = Math.max(toRect.top, Math.min(fromY, toRect.bottom));
+          break;
+          
+        case 'ArrowLeft':
+          // From left edge of current to right edge of target
+          fromX = fromRect.left;
+          fromY = fromRect.top + fromRect.height / 2;
+          toX = toRect.right;
+          toY = Math.max(toRect.top, Math.min(fromY, toRect.bottom));
+          break;
+          
+        case 'ArrowDown':
+          // From bottom edge of current to top edge of target
+          fromX = fromRect.left + fromRect.width / 2;
+          fromY = fromRect.bottom;
+          toY = toRect.top;
+          // Find the X coordinate on target's top edge closest to fromX
+          toX = Math.max(toRect.left, Math.min(fromX, toRect.right));
+          break;
+          
+        case 'ArrowUp':
+          // From top edge of current to bottom edge of target
+          fromX = fromRect.left + fromRect.width / 2;
+          fromY = fromRect.top;
+          toY = toRect.bottom;
+          toX = Math.max(toRect.left, Math.min(fromX, toRect.right));
+          break;
+          
+        default:
+          return { distance: Infinity, angle: 0 };
+      }
 
-    // Define overlapping sectors for each direction
-    // Each sector is 120° wide, creating 60° overlaps
-    const sectors = {
-      'ArrowRight': { center: 0, width: 120 },    // -60° to 60°
-      'ArrowDown': { center: 90, width: 120 },   // 30° to 150°
-      'ArrowLeft': { center: 180, width: 120 },  // 120° to 240°
-      'ArrowUp': { center: 270, width: 120 }      // 210° to 330°
-    };
-
-    const findBestCandidate = (candidates: typeof elements) => {
-      if (candidates.length === 0) return null;
+      const dx = toX - fromX;
+      const dy = toY - fromY;
+      const distance = Math.hypot(dx, dy);
+      const angle = Math.atan2(dy, dx) * (180 / Math.PI);
       
-      // Sort by distance
-      return candidates.reduce((prev, curr) => {
-        const prevDist = Math.hypot(current!.x - prev.x, current!.y - prev.y);
-        const currDist = Math.hypot(current!.x - curr.x, current!.y - curr.y);
-        return currDist < prevDist ? curr : prev;
-      });
+      return { distance, angle, fromX, fromY, toX, toY };
+    };
+
+    // Check if the target is in the correct direction
+    const isInCorrectDirection = (direction: string, fromRect: DOMRect, toRect: DOMRect) => {
+      const overlap = {
+        horizontal: Math.min(fromRect.right, toRect.right) > Math.max(fromRect.left, toRect.left),
+        vertical: Math.min(fromRect.bottom, toRect.bottom) > Math.max(fromRect.top, toRect.top)
+      };
+
+      switch (direction) {
+        case 'ArrowRight':
+          // Target must be to the right
+          return toRect.left > fromRect.right - 10 || (overlap.vertical && toRect.right > fromRect.right);
+          
+        case 'ArrowLeft':
+          // Target must be to the left
+          return toRect.right < fromRect.left + 10 || (overlap.vertical && toRect.left < fromRect.left);
+          
+        case 'ArrowDown':
+          // Target must be below
+          return toRect.top > fromRect.bottom - 10 || (overlap.horizontal && toRect.bottom > fromRect.bottom);
+          
+        case 'ArrowUp':
+          // Target must be above
+          return toRect.bottom < fromRect.top + 10 || (overlap.horizontal && toRect.top < fromRect.top);
+          
+        default:
+          return false;
+      }
+    };
+
+    const findBestCandidate = (direction: string, currentRect: DOMRect) => {
+      const candidates = elements
+        .filter(el => {
+          if (el === current) return false;
+          return isInCorrectDirection(direction, currentRect, el.rect);
+        })
+        .map(el => {
+          const result = getClosestPoint(currentRect, el.rect, direction);
+          return { ...el, ...result };
+        })
+        .filter(el => el.distance > 0) // Must have some distance
+        .sort((a, b) => {
+          // Primary sort by distance
+          const distanceDiff = a.distance - b.distance;
+          if (Math.abs(distanceDiff) > 10) return distanceDiff;
+          
+          // Secondary sort by alignment (how close to straight line)
+          const aAlignment = Math.abs(a.angle % 90);
+          const bAlignment = Math.abs(b.angle % 90);
+          return aAlignment - bAlignment;
+        });
+
+      return candidates[0] || null;
     };
 
     switch (key) {
@@ -326,21 +394,7 @@ export function useKeyboardNavigation() {
         if (!event.metaKey && !event.ctrlKey) event.preventDefault();
         
         if (current) {
-          const sector = sectors[key];
-          
-          // Find all elements in the direction's sector
-          const candidates = elements.filter(el => {
-            if (el === current) return false;
-            
-            // Must be at least 10px away to avoid selecting the same element
-            const distance = Math.hypot(el.x - current.x, el.y - current.y);
-            if (distance < 10) return false;
-            
-            const angle = getAngle(current, el);
-            return isAngleInSector(angle, sector.center, sector.width);
-          });
-          
-          const best = findBestCandidate(candidates);
+          const best = findBestCandidate(key, current.rect);
           if (best) {
             setMainFocusIndex(best.index);
           } else if (key === 'ArrowLeft' && sidebarVisible) {
