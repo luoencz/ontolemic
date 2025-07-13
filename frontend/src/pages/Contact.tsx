@@ -11,14 +11,14 @@ function Contact() {
         <div className="space-y-4">
           <div>
             <span className="text-base font-normal">Email: </span>
-            <a href="mailto:hello@xn--the-2na.space" className="text-blue-600 hover:underline">
+            <a href="mailto:hello@xn--the-2na.space">
               hello@xn--the-2na.space
             </a>
           </div>
 
           <div>
             <span className="text-base font-normal">Telegram: </span>
-            <a href="https://t.me/Luoencz" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+            <a href="https://t.me/Luoencz" target="_blank" rel="noopener noreferrer">
               @Luoencz
             </a>
           </div>

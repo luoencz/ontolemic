@@ -28,11 +28,11 @@ function Cue() {
           </p>
           
           <p>
-            You can explore Cue on your own at <a href="https://cue.the-o.space" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">cue.the-o.space</a>
+            You can explore Cue on your own at <a href="https://cue.the-o.space" target="_blank" rel="noopener noreferrer">cue.the-o.space</a>
           </p>
           
           <p>
-            For the technically inclined: the project is built with React and TypeScript, and uses the Claude AI API for sentiment analysis. To host it yourself, you'll need to acquire the Claude API key and set it in the .env file. My future plans for Cue include expanding the algorithmic complexities to make it truly surprising each time — a unique mirror of your state of mind set out to prompt introspection. The source code is available at <a href="https://github.com/the-o-space/Cue" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">the-o-space/Cue</a>.
+            For the technically inclined: the project is built with React and TypeScript, and uses the Claude AI API for sentiment analysis. To host it yourself, you'll need to acquire the Claude API key and set it in the .env file. My future plans for Cue include expanding the algorithmic complexities to make it truly surprising each time — a unique mirror of your state of mind set out to prompt introspection. The source code is available at <a href="https://github.com/the-o-space/Cue" target="_blank" rel="noopener noreferrer">the-o-space/Cue</a>.
           </p>
         </div>
       </div>
