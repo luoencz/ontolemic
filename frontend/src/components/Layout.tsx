@@ -1,4 +1,5 @@
-import { ReactNode, useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
+import { Outlet } from 'react-router-dom';
 import { useAppSelector } from '../store/hooks';
 import { useKeyboardNavigation } from '../hooks/useKeyboardNavigation';
 import { useSearchHighlight } from '../hooks/useSearchHighlight';
@@ -9,11 +10,12 @@ import ControlsModal from './modals/ControlsModal';
 import SettingsModal from './modals/SettingsModal';
 import { Search } from './Search';
 
-interface LayoutProps {
-  children: ReactNode;
-}
+const PageContentLoader = () => (
+  <div className="flex items-center justify-center w-full" style={{ minHeight: 'calc(100vh - 12rem)'}}>
+  </div>
+);
 
-export function Layout({ children }: LayoutProps) {
+export function Layout() {
   const sidebarVisible = useAppSelector(state => state.ui.sidebarVisible);
   const keyboardNavigation = useKeyboardNavigation();
   const [searchOpen, setSearchOpen] = useState(false);
@@ -50,7 +52,9 @@ export function Layout({ children }: LayoutProps) {
       <main className={`transition-all duration-300 ease-in-out ${
         sidebarVisible ? 'lg:ml-64' : 'lg:ml-0'
       } p-4 lg:p-8 pt-20 lg:pt-8 min-h-screen`}>
-        {children}
+        <Suspense fallback={<PageContentLoader />}>
+          <Outlet />
+        </Suspense>
       </main>
 
       {/* Sidebar toggle when hidden - desktop only */}

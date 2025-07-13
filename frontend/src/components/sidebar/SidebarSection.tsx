@@ -31,7 +31,7 @@ function SidebarSection({
             navigate(path);
           }
         }}
-        className={`flex items-center justify-between w-full py-1 text-sm hover:underline text-left select-none ${
+        className={`flex items-center justify-between w-full py-1 text-sm no-underline hover:underline text-left select-none ${
           isActive ? 'font-bold' : ''
         } ${
           isFocused ? 'bg-gray-100 px-2 -mx-2 rounded' : ''

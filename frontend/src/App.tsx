@@ -1,7 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { Suspense, lazy } from 'react';
+import { lazy } from 'react';
 import { Layout } from './components/Layout';
-import { useRoutePrefetch } from './hooks/useRoutePrefetch';
 
 // Lazy load all pages for code splitting
 const About = lazy(() => import('./pages/About'));
@@ -14,45 +13,30 @@ const Backstage = lazy(() => import('./pages/backstage/Backstage'));
 const Quotes = lazy(() => import('./pages/backstage/Quotes'));
 const Cue = lazy(() => import('./pages/projects/Cue'));
 
-// Loading component
-const PageLoader = () => (
-  <div className="flex items-center justify-center min-h-screen">
-    <div className="text-gray-500">Loading...</div>
-  </div>
-);
-
 function App() {
-  // Prefetch all routes using idle time
-  // Comment out if you prefer hover-only prefetching
-  useRoutePrefetch({
-    immediate: true,
-    delay: 3000, // Start after 3 seconds
-    strategy: 'idle', // Use browser idle time
-  });
-  
   return (
     <Router>
-      <Suspense fallback={<PageLoader />}>
-        <Routes>
+      <Routes>
+        <Route element={<Layout />}>
           {/* Redirect root to about */}
           <Route path="/" element={<Navigate to="/about" replace />} />
           
-          {/* Regular pages with Layout */}
-          <Route path="/about" element={<Layout><About /></Layout>} />
-          <Route path="/blog" element={<Layout><Blog /></Layout>} />
-          <Route path="/contact" element={<Layout><Contact /></Layout>} />
-          <Route path="/projects" element={<Layout><Projects /></Layout>} />
-          <Route path="/research" element={<Layout><Research /></Layout>} />
-          <Route path="/navigation" element={<Layout><NavigationPage /></Layout>} />
+          {/* Pages */}
+          <Route path="about" element={<About />} />
+          <Route path="blog" element={<Blog />} />
+          <Route path="contact" element={<Contact />} />
+          <Route path="projects" element={<Projects />} />
+          <Route path="research" element={<Research />} />
+          <Route path="navigation" element={<NavigationPage />} />
           
           {/* Project pages */}
-          <Route path="/projects/cue" element={<Layout><Cue /></Layout>} />
+          <Route path="projects/cue" element={<Cue />} />
           
           {/* Backstage pages */}
-          <Route path="/backstage" element={<Layout><Backstage /></Layout>} />
-          <Route path="/backstage/quotes" element={<Layout><Quotes /></Layout>} />
-        </Routes>
-      </Suspense>
+          <Route path="backstage" element={<Backstage />} />
+          <Route path="backstage/quotes" element={<Quotes />} />
+        </Route>
+      </Routes>
     </Router>
   );
 }

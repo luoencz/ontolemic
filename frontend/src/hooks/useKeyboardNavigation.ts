@@ -2,16 +2,13 @@ import { useEffect, useCallback, useState, useRef, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { toggleSidebar, toggleSound, setShowControls, setShowSettings, closeAllModals } from '../store/slices/uiSlice';
-import { setProjectsOpen, setResearchOpen, setBackstageOpen, setFocusArea } from '../store/slices/navigationSlice';
-import { navItems, projectItems, researchItems, backstageItems } from '../config/navigation';
+import { setNodeExpanded, toggleNode, setFocusArea } from '../store/slices/navigationSlice';
+import { navigationTree, backstageTree, NavNode } from '../config/navigation';
 
-// Define navigation node structure
-interface NavigationNode {
-  id: string;
-  path: string;
-  label: string;
-  expandable?: boolean;
-  children?: NavigationNode[];
+interface FlatNode {
+  node: NavNode;
+  depth: number;
+  path: string[]; // Path of node IDs from root to this node
 }
 
 export function useKeyboardNavigation() {
@@ -34,89 +31,58 @@ export function useKeyboardNavigation() {
   const sidebarVisible = useAppSelector(state => state.ui.sidebarVisible);
   
   // Navigation state
-  const projectsOpen = useAppSelector(state => state.navigation.projectsOpen);
-  const researchOpen = useAppSelector(state => state.navigation.researchOpen);
-  const backstageOpen = useAppSelector(state => state.navigation.backstageOpen);
+  const expandedIds = useAppSelector(state => state.navigation.expandedIds);
   const focusArea = useAppSelector(state => state.navigation.focusArea);
   
-  // Focus state - using a single object for all focus indices
-  const [focusState, setFocusState] = useState({
-    navIndex: -1,
-    projectIndex: -1,
-    researchIndex: -1,
-    backstageIndex: -1,
-    bottomButtonIndex: -1,
-    mainIndex: -1,
-  });
+  // Focus state
+  const [sidebarFocusIndex, setSidebarFocusIndex] = useState(-1);
+  const [bottomButtonIndex, setBottomButtonIndex] = useState(-1);
+  const [mainFocusIndex, setMainFocusIndex] = useState(-1);
+  
+  // Track last focused element on a per-path basis
+  const lastMainFocusIndex = useRef<Record<string, number>>({});
   
   // Track the last location we initialized focus for
   const lastFocusedLocation = useRef<string | null>(null);
 
-  // Build navigation tree dynamically based on current state
-  const buildNavigationTree = useCallback((): NavigationNode[] => {
-    const tree: NavigationNode[] = navItems.map((item, index) => ({
-      id: `nav-${index}`,
-      path: item.path,
-      label: item.label,
-      expandable: item.isDropdown,
-      children: item.isDropdown ? (
-        item.path === '/projects' ? 
-          projectItems.map((proj, idx) => ({
-            id: `project-${idx}`,
-            path: proj.path,
-            label: proj.label,
-          })) :
-          researchItems.map((res, idx) => ({
-            id: `research-${idx}`,
-            path: res.path,
-            label: res.label,
-          }))
-      ) : undefined,
-    }));
-
-    // Add backstage if unlocked
+  // Build full navigation tree including backstage if unlocked
+  const fullTree = useMemo(() => {
+    const tree = [...navigationTree];
     if (backstageUnlocked) {
-      tree.push({
-        id: 'backstage',
-        path: '/backstage',
-        label: '// Backstage',
-        expandable: true,
-        children: backstageItems.map((item, idx) => ({
-          id: `backstage-${idx}`,
-          path: item.path,
-          label: item.label,
-        })),
-      });
+      tree.push(backstageTree);
     }
-
     return tree;
   }, [backstageUnlocked]);
 
-  // Get expansion state for a section
-  const isExpanded = useCallback((node: NavigationNode): boolean => {
-    if (!node.expandable) return false;
-    switch (node.path) {
-      case '/projects': return projectsOpen;
-      case '/research': return researchOpen;
-      case '/backstage': return backstageOpen;
-      default: return false;
-    }
-  }, [projectsOpen, researchOpen, backstageOpen]);
+  // Flatten the tree to get all visible nodes
+  const flattenTree = useCallback((nodes: NavNode[], depth = 0, parentPath: string[] = []): FlatNode[] => {
+    const result: FlatNode[] = [];
+    
+    nodes.forEach(node => {
+      const path = [...parentPath, node.id];
+      result.push({ node, depth, path });
+      
+      if (node.children && expandedIds[node.id]) {
+        result.push(...flattenTree(node.children, depth + 1, path));
+      }
+    });
+    
+    return result;
+  }, [expandedIds]);
 
-  // Toggle expansion for a section
-  const toggleExpansion = useCallback((node: NavigationNode) => {
-    switch (node.path) {
-      case '/projects': dispatch(setProjectsOpen(!projectsOpen)); break;
-      case '/research': dispatch(setResearchOpen(!researchOpen)); break;
-      case '/backstage': dispatch(setBackstageOpen(!backstageOpen)); break;
-    }
-  }, [dispatch, projectsOpen, researchOpen, backstageOpen]);
+  // Get flattened list of visible nodes
+  const visibleNodes = useMemo(() => flattenTree(fullTree), [flattenTree, fullTree]);
 
-  // Set initial focus based on current page - only when location or sidebar visibility changes
+  // Find node by path
+  const findNodeByPath = useCallback((pathname: string): FlatNode | null => {
+    return visibleNodes.find(flat => flat.node.path === pathname) || null;
+  }, [visibleNodes]);
+
+  // Set initial focus based on current page
   useEffect(() => {
     if (!sidebarVisible) {
       dispatch(setFocusArea('main'));
-      lastFocusedLocation.current = null; // Reset when sidebar is hidden
+      lastFocusedLocation.current = null;
       return;
     }
 
@@ -128,235 +94,174 @@ export function useKeyboardNavigation() {
 
     dispatch(setFocusArea('sidebar'));
     
-
-    const tree: NavigationNode[] = navItems.map((item, index) => ({
-      id: `nav-${index}`,
-      path: item.path,
-      label: item.label,
-      expandable: item.isDropdown,
-      children: item.isDropdown ? (
-        item.path === '/projects' ? 
-          projectItems.map((proj, idx) => ({
-            id: `project-${idx}`,
-            path: proj.path,
-            label: proj.label,
-          })) :
-          researchItems.map((res, idx) => ({
-            id: `research-${idx}`,
-            path: res.path,
-            label: res.label,
-          }))
-      ) : undefined,
-    }));
-
-    // Add backstage if unlocked
-    if (backstageUnlocked) {
-      tree.push({
-        id: 'backstage',
-        path: '/backstage',
-        label: '// Backstage',
-        expandable: true,
-        children: backstageItems.map((item, idx) => ({
-          id: `backstage-${idx}`,
-          path: item.path,
-          label: item.label,
-        })),
+    // Find current page in flattened nodes
+    const currentNode = findNodeByPath(location.pathname);
+    if (currentNode) {
+      const index = visibleNodes.indexOf(currentNode);
+      setSidebarFocusIndex(index);
+      
+      // Auto-expand parent nodes if needed
+      currentNode.path.slice(0, -1).forEach(parentId => {
+        if (!expandedIds[parentId]) {
+          dispatch(setNodeExpanded({ id: parentId, expanded: true }));
+        }
       });
-    }
-    
-    // Find current page in navigation tree
-    let foundFocus = false;
-    tree.forEach((node, navIndex) => {
-      if (node.path === location.pathname) {
-        setFocusState(prev => ({ ...prev, navIndex }));
-        foundFocus = true;
-      } else if (node.children) {
-        node.children.forEach((child, childIndex) => {
-          if (child.path === location.pathname) {
-            setFocusState(prev => ({
-              ...prev,
-              navIndex,
-              projectIndex: node.path === '/projects' ? childIndex : -1,
-              researchIndex: node.path === '/research' ? childIndex : -1,
-              backstageIndex: node.path === '/backstage' ? childIndex : -1,
-            }));
-            
-            // Auto-expand parent section
-            switch (node.path) {
-              case '/projects': dispatch(setProjectsOpen(true)); break;
-              case '/research': dispatch(setResearchOpen(true)); break;
-              case '/backstage': dispatch(setBackstageOpen(true)); break;
-            }
-            foundFocus = true;
-          }
-        });
+    } else {
+      // Try to find parent node if exact path not found
+      const parentPaths = location.pathname.split('/').filter(Boolean);
+      for (let i = parentPaths.length; i > 0; i--) {
+        const parentPath = '/' + parentPaths.slice(0, i).join('/');
+        const parentNode = findNodeByPath(parentPath);
+        if (parentNode) {
+          const index = visibleNodes.indexOf(parentNode);
+          setSidebarFocusIndex(index);
+          break;
+        }
       }
-    });
-
-    if (!foundFocus) {
-      setFocusState(prev => ({ ...prev, navIndex: -1 }));
     }
-  }, [location.pathname, dispatch, sidebarVisible, backstageUnlocked]);
+  }, [location.pathname, dispatch, sidebarVisible, findNodeByPath, visibleNodes, expandedIds]);
 
-  // Helper to get currently focused section
-  const getFocusedSection = useCallback(() => {
-    const tree = buildNavigationTree();
-    const node = tree[focusState.navIndex];
-    if (!node) return null;
+  // Get currently focused node
+  const getFocusedNode = useCallback((): FlatNode | null => {
+    if (sidebarFocusIndex >= 0 && sidebarFocusIndex < visibleNodes.length) {
+      return visibleNodes[sidebarFocusIndex];
+    }
+    return null;
+  }, [sidebarFocusIndex, visibleNodes]);
+
+  const switchToMainArea = useCallback(() => {
+    const mainElement = document.querySelector('main');
+    if (!mainElement) return;
+
+    const focusableElements = Array.from(mainElement.querySelectorAll('a, button, [tabindex]:not([tabindex="-1"])')) as HTMLElement[];
+    if (focusableElements.length === 0) return;
+
+    dispatch(setFocusArea('main'));
+
+    // 1. Check for a remembered focus index for the current page
+    const rememberedIndex = lastMainFocusIndex.current[location.pathname];
+    if (rememberedIndex !== undefined && focusableElements[rememberedIndex]) {
+      const element = focusableElements[rememberedIndex];
+      const rect = element.getBoundingClientRect();
+      // Check if the element is in the viewport
+      if (rect.top >= 0 && rect.bottom <= window.innerHeight) {
+        setMainFocusIndex(rememberedIndex);
+        return;
+      }
+    }
+
+    // 2. Find the element closest to the sidebar focus
+    const focusedNode = getFocusedNode();
+    if (focusedNode) {
+        const sidebarItem = document.querySelector(`[data-node-id='${focusedNode.node.id}']`);
+        if (sidebarItem) {
+          const sidebarRect = sidebarItem.getBoundingClientRect();
+          const sidebarCenterY = sidebarRect.top + sidebarRect.height / 2;
+          
+          const visibleElementsWithIndex = focusableElements
+            .map((el, index) => ({ el, index, rect: el.getBoundingClientRect() }))
+            .filter(({ rect }) => rect.top >= 0 && rect.bottom <= window.innerHeight);
+
+          if (visibleElementsWithIndex.length > 0) {
+            const closestElement = visibleElementsWithIndex
+              .map(({ index, rect }) => {
+                const elCenterY = rect.top + rect.height / 2;
+                const distance = Math.abs(elCenterY - sidebarCenterY);
+                return { index, distance };
+              })
+              .reduce((prev, curr) => {
+                return prev.distance < curr.distance ? prev : curr;
+              });
+
+            setMainFocusIndex(closestElement.index);
+            return;
+          }
+        }
+    }
     
-    return {
-      node,
-      childIndex: node.path === '/projects' ? focusState.projectIndex :
-                  node.path === '/research' ? focusState.researchIndex :
-                  node.path === '/backstage' ? focusState.backstageIndex : -1,
-    };
-  }, [buildNavigationTree, focusState]);
+    // 3. Fallback to the first visible element
+    for (let i = 0; i < focusableElements.length; i++) {
+      const rect = focusableElements[i].getBoundingClientRect();
+      if (rect.top >= 0 && rect.bottom <= window.innerHeight) {
+        setMainFocusIndex(i);
+        return;
+      }
+    }
+
+    // 4. If nothing is visible, fallback to the first element
+    setMainFocusIndex(0);
+
+  }, [dispatch, location.pathname, getFocusedNode]);
 
   // Navigate sidebar vertically
   const navigateSidebar = useCallback((direction: 'up' | 'down') => {
-    const tree = buildNavigationTree();
-    const section = getFocusedSection();
-
     if (direction === 'up') {
-      // Handle bottom buttons navigation
-      if (focusState.bottomButtonIndex >= 0) {
-        const lastNavIndex = backstageUnlocked ? tree.length - 1 : navItems.length - 1;
-        setFocusState(prev => ({ ...prev, bottomButtonIndex: -1, navIndex: lastNavIndex }));
-        return;
-      }
-
-      // Handle navigation within expanded sections
-      if (section && section.node.expandable && isExpanded(section.node) && section.childIndex >= 0) {
-        if (section.childIndex === 0) {
-          // Exit child navigation
-          setFocusState(prev => ({
-            ...prev,
-            projectIndex: -1,
-            researchIndex: -1,
-            backstageIndex: -1,
-          }));
-        } else {
-          // Navigate to previous child
-          const key = section.node.path === '/projects' ? 'projectIndex' :
-                     section.node.path === '/research' ? 'researchIndex' : 'backstageIndex';
-          setFocusState(prev => ({ ...prev, [key]: section.childIndex - 1 }));
-        }
-        return;
-      }
-
-      // Navigate between top-level items
-      if (focusState.navIndex > 0) {
-        setFocusState(prev => ({ ...prev, navIndex: prev.navIndex - 1 }));
-      } else if (focusState.navIndex === 0) {
+      if (bottomButtonIndex >= 0) {
+        // From bottom buttons, go to last visible node
+        setBottomButtonIndex(-1);
+        setSidebarFocusIndex(visibleNodes.length - 1);
+      } else if (sidebarFocusIndex > 0) {
+        setSidebarFocusIndex(sidebarFocusIndex - 1);
+      } else if (sidebarFocusIndex === 0) {
         // Loop to bottom buttons
-        setFocusState(prev => ({ ...prev, navIndex: -1, bottomButtonIndex: bottomButtons.length - 1 }));
+        setSidebarFocusIndex(-1);
+        setBottomButtonIndex(bottomButtons.length - 1);
       }
     } else {
-      // Handle down navigation
-      if (focusState.bottomButtonIndex >= 0) {
+      if (bottomButtonIndex >= 0) {
         // From bottom buttons, loop to top
-        setFocusState(prev => ({ ...prev, bottomButtonIndex: -1, navIndex: 0 }));
-        return;
-      }
-
-      // Handle navigation within expanded sections
-      if (section && section.node.expandable && isExpanded(section.node)) {
-        if (section.childIndex === -1 && section.node.children && section.node.children.length > 0) {
-          // Enter child navigation
-          const key = section.node.path === '/projects' ? 'projectIndex' :
-                     section.node.path === '/research' ? 'researchIndex' : 'backstageIndex';
-          setFocusState(prev => ({ ...prev, [key]: 0 }));
-          return;
-        } else if (section.childIndex >= 0 && section.node.children && 
-                  section.childIndex < section.node.children.length - 1) {
-          // Navigate to next child
-          const key = section.node.path === '/projects' ? 'projectIndex' :
-                     section.node.path === '/research' ? 'researchIndex' : 'backstageIndex';
-          setFocusState(prev => ({ ...prev, [key]: section.childIndex + 1 }));
-          return;
-        }
-      }
-
-      // Navigate between top-level items
-      if (focusState.navIndex < tree.length - 1) {
-        setFocusState(prev => ({ 
-          ...prev, 
-          navIndex: prev.navIndex + 1,
-          projectIndex: -1,
-          researchIndex: -1,
-          backstageIndex: -1,
-        }));
-      } else {
+        setBottomButtonIndex(-1);
+        setSidebarFocusIndex(0);
+      } else if (sidebarFocusIndex < visibleNodes.length - 1) {
+        setSidebarFocusIndex(sidebarFocusIndex + 1);
+      } else if (sidebarFocusIndex === visibleNodes.length - 1) {
         // Go to bottom buttons
-        setFocusState(prev => ({ ...prev, navIndex: -1, bottomButtonIndex: 0 }));
+        setSidebarFocusIndex(-1);
+        setBottomButtonIndex(0);
       }
     }
-  }, [buildNavigationTree, getFocusedSection, focusState, isExpanded, backstageUnlocked]);
+  }, [sidebarFocusIndex, bottomButtonIndex, visibleNodes.length, bottomButtons.length]);
 
   // Navigate sidebar horizontally
   const navigateSidebarHorizontal = useCallback((direction: 'left' | 'right') => {
     // Handle bottom buttons
-    if (focusState.bottomButtonIndex >= 0) {
+    if (bottomButtonIndex >= 0) {
       if (direction === 'right') {
-        setFocusState(prev => ({ 
-          ...prev, 
-          bottomButtonIndex: (prev.bottomButtonIndex + 1) % bottomButtons.length 
-        }));
+        setBottomButtonIndex((bottomButtonIndex + 1) % bottomButtons.length);
       } else {
-        setFocusState(prev => ({ 
-          ...prev, 
-          bottomButtonIndex: prev.bottomButtonIndex === 0 ? bottomButtons.length - 1 : prev.bottomButtonIndex - 1
-        }));
+        setBottomButtonIndex(bottomButtonIndex === 0 ? bottomButtons.length - 1 : bottomButtonIndex - 1);
       }
       return;
     }
 
-    const section = getFocusedSection();
-    if (!section) return;
+    const focusedNode = getFocusedNode();
+    if (!focusedNode) return;
 
     if (direction === 'right') {
-      // Expand section or switch to main
-      if (section.node.expandable && !isExpanded(section.node)) {
-        toggleExpansion(section.node);
+      // Expand node or switch to main
+      if (focusedNode.node.children && focusedNode.node.children.length > 0 && !expandedIds[focusedNode.node.id]) {
+        dispatch(toggleNode(focusedNode.node.id));
       } else {
         // Switch to main area
-        const mainElement = document.querySelector('main');
-        if (mainElement) {
-          const focusableElements = mainElement.querySelectorAll('a, button, [tabindex]:not([tabindex="-1"])');
-          if (focusableElements.length > 0) {
-            dispatch(setFocusArea('main'));
-            if (focusState.mainIndex === -1) {
-              setFocusState(prev => ({ ...prev, mainIndex: 0 }));
-            }
-          }
-        }
+        switchToMainArea();
       }
     } else {
-      // Collapse section or switch to main
-      if (section.node.expandable && isExpanded(section.node)) {
-        toggleExpansion(section.node);
-        // Clear child focus
-        setFocusState(prev => ({
-          ...prev,
-          projectIndex: -1,
-          researchIndex: -1,
-          backstageIndex: -1,
-        }));
-      } else {
-        // Switch to main area (wraps around)
-        const mainElement = document.querySelector('main');
-        if (mainElement) {
-          const focusableElements = mainElement.querySelectorAll('a, button, [tabindex]:not([tabindex="-1"])');
-          if (focusableElements.length > 0) {
-            dispatch(setFocusArea('main'));
-            if (focusState.mainIndex === -1) {
-              setFocusState(prev => ({ ...prev, mainIndex: 0 }));
-            }
-          }
+      // Collapse node or move to parent
+      if (focusedNode.node.children && expandedIds[focusedNode.node.id]) {
+        dispatch(toggleNode(focusedNode.node.id));
+      } else if (focusedNode.depth > 0) {
+        // Move focus to parent node
+        const parentId = focusedNode.path[focusedNode.path.length - 2];
+        const parentIndex = visibleNodes.findIndex(n => n.node.id === parentId);
+        if (parentIndex >= 0) {
+          setSidebarFocusIndex(parentIndex);
         }
+      } else {
+        // At root level, switch to main area (wraps around)
+        switchToMainArea();
       }
     }
-  }, [focusState, getFocusedSection, isExpanded, toggleExpansion, dispatch]);
+  }, [bottomButtonIndex, bottomButtons.length, getFocusedNode, expandedIds, dispatch, visibleNodes, switchToMainArea]);
 
   // Handle main area navigation
   const navigateMainArea = useCallback((key: string, event: KeyboardEvent) => {
@@ -372,8 +277,8 @@ export function useKeyboardNavigation() {
     };
 
     const elements = focusableElements.map((el, index) => ({ ...getElementCenter(el), index }));
-    const current = focusState.mainIndex >= 0 && focusState.mainIndex < elements.length ? 
-                   elements[focusState.mainIndex] : null;
+    const current = mainFocusIndex >= 0 && mainFocusIndex < elements.length ? 
+                   elements[mainFocusIndex] : null;
 
     const findClosest = (candidates: typeof elements) => 
       candidates.reduce((prev, curr) => {
@@ -391,10 +296,10 @@ export function useKeyboardNavigation() {
             Math.abs(el.x - current.x) < Math.max(el.rect.width, current.rect.width)
           );
           if (candidates.length > 0) {
-            setFocusState(prev => ({ ...prev, mainIndex: findClosest(candidates).index }));
+            setMainFocusIndex(findClosest(candidates).index);
           }
         } else {
-          setFocusState(prev => ({ ...prev, mainIndex: 0 }));
+          setMainFocusIndex(0);
         }
         break;
 
@@ -406,10 +311,10 @@ export function useKeyboardNavigation() {
             Math.abs(el.x - current.x) < Math.max(el.rect.width, current.rect.width)
           );
           if (candidates.length > 0) {
-            setFocusState(prev => ({ ...prev, mainIndex: findClosest(candidates).index }));
+            setMainFocusIndex(findClosest(candidates).index);
           }
         } else {
-          setFocusState(prev => ({ ...prev, mainIndex: 0 }));
+          setMainFocusIndex(0);
         }
         break;
 
@@ -421,12 +326,12 @@ export function useKeyboardNavigation() {
             Math.abs(el.y - current.y) < Math.max(el.rect.height, current.rect.height) / 2
           );
           if (candidates.length > 0) {
-            setFocusState(prev => ({ ...prev, mainIndex: findClosest(candidates).index }));
+            setMainFocusIndex(findClosest(candidates).index);
           } else if (sidebarVisible) {
             dispatch(setFocusArea('sidebar'));
           }
         } else {
-          setFocusState(prev => ({ ...prev, mainIndex: 0 }));
+          setMainFocusIndex(0);
         }
         break;
 
@@ -438,21 +343,21 @@ export function useKeyboardNavigation() {
             Math.abs(el.y - current.y) < Math.max(el.rect.height, current.rect.height) / 2
           );
           if (candidates.length > 0) {
-            setFocusState(prev => ({ ...prev, mainIndex: findClosest(candidates).index }));
+            setMainFocusIndex(findClosest(candidates).index);
           }
         } else {
-          setFocusState(prev => ({ ...prev, mainIndex: 0 }));
+          setMainFocusIndex(0);
         }
         break;
 
       case 'Enter':
         event.preventDefault();
-        if (focusState.mainIndex >= 0 && focusState.mainIndex < focusableElements.length) {
-          focusableElements[focusState.mainIndex].click();
+        if (mainFocusIndex >= 0 && mainFocusIndex < focusableElements.length) {
+          focusableElements[mainFocusIndex].click();
         }
         break;
     }
-  }, [focusState, sidebarVisible, dispatch]);
+  }, [mainFocusIndex, sidebarVisible, dispatch]);
 
   // Main keyboard handler
   const handleKeyDown = useCallback((event: KeyboardEvent) => {
@@ -466,16 +371,7 @@ export function useKeyboardNavigation() {
     if (event.key === 'Tab') {
       event.preventDefault();
       if (focusArea === 'sidebar' && sidebarVisible) {
-        const mainElement = document.querySelector('main');
-        if (mainElement) {
-          const focusableElements = mainElement.querySelectorAll('a, button, [tabindex]:not([tabindex="-1"])');
-          if (focusableElements.length > 0) {
-            dispatch(setFocusArea('main'));
-            if (focusState.mainIndex === -1) {
-              setFocusState(prev => ({ ...prev, mainIndex: 0 }));
-            }
-          }
-        }
+        switchToMainArea();
       } else if (sidebarVisible) {
         dispatch(setFocusArea('sidebar'));
       }
@@ -510,32 +406,17 @@ export function useKeyboardNavigation() {
       event.preventDefault();
       if (showControls || showSettings) {
         dispatch(closeAllModals());
-              } else {
-          // Always return focus to sidebar unless it's not visible
-          if (sidebarVisible) {
-            dispatch(setFocusArea('sidebar'));
-            // Set focus to the current page's nav item if we can find it, otherwise first item
-            if (focusState.navIndex === -1) {
-              setFocusState(prev => ({ 
-                ...prev, 
-                navIndex: 0,
-                projectIndex: -1,
-                researchIndex: -1,
-                backstageIndex: -1,
-                bottomButtonIndex: -1,
-              }));
-            } else {
-              // Keep current nav item focused but clear child focus
-              setFocusState(prev => ({
-                ...prev,
-                projectIndex: -1,
-                researchIndex: -1,
-                backstageIndex: -1,
-                bottomButtonIndex: -1,
-              }));
-            }
+      } else {
+        // Always return focus to sidebar unless it's not visible
+        if (sidebarVisible) {
+          dispatch(setFocusArea('sidebar'));
+          // Set focus to the current page's nav item if we can find it
+          if (sidebarFocusIndex === -1 && visibleNodes.length > 0) {
+            setSidebarFocusIndex(0);
+            setBottomButtonIndex(-1);
           }
         }
+      }
       return;
     }
 
@@ -570,31 +451,37 @@ export function useKeyboardNavigation() {
           break;
         case 'Enter':
           event.preventDefault();
-          if (focusState.bottomButtonIndex >= 0) {
+          if (bottomButtonIndex >= 0) {
             // Execute bottom button action
-            const button = bottomButtons[focusState.bottomButtonIndex];
+            const button = bottomButtons[bottomButtonIndex];
             button.action();
           } else {
             // Navigate to selected item
-            const section = getFocusedSection();
-            if (section) {
-              if (section.childIndex >= 0 && section.node.children) {
-                navigate(section.node.children[section.childIndex].path);
-              } else {
-                navigate(section.node.path);
-              }
+            const focusedNode = getFocusedNode();
+            if (focusedNode && focusedNode.node.path) {
+              navigate(focusedNode.node.path);
+            } else if (focusedNode && focusedNode.node.children) {
+              // Toggle expansion if no path
+              dispatch(toggleNode(focusedNode.node.id));
             }
           }
           break;
       }
     }
-  }, [dispatch, showControls, showSettings, focusArea, sidebarVisible, navigateSidebar, navigateSidebarHorizontal, navigateMainArea, getFocusedSection, navigate, focusState]);
+  }, [dispatch, showControls, showSettings, focusArea, sidebarVisible, navigateSidebar, navigateSidebarHorizontal, navigateMainArea, getFocusedNode, navigate, bottomButtonIndex, bottomButtons, mainFocusIndex, sidebarFocusIndex, visibleNodes.length, switchToMainArea]);
 
   // Set up event listener
   useEffect(() => {
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [handleKeyDown]);
+
+  // Remember the last focused item in the main area
+  useEffect(() => {
+    if (focusArea === 'main' && mainFocusIndex !== -1) {
+      lastMainFocusIndex.current[location.pathname] = mainFocusIndex;
+    }
+  }, [mainFocusIndex, focusArea, location.pathname]);
 
   // Apply visual focus to main area elements
   useEffect(() => {
@@ -605,7 +492,7 @@ export function useKeyboardNavigation() {
     
     if (focusArea === 'main') {
       focusableElements.forEach((element, index) => {
-        if (index === focusState.mainIndex) {
+        if (index === mainFocusIndex) {
           element.classList.add('ring-2', 'ring-black', 'ring-offset-2', 'rounded');
         } else {
           element.classList.remove('ring-2', 'ring-black', 'ring-offset-2', 'rounded');
@@ -622,13 +509,14 @@ export function useKeyboardNavigation() {
         element.classList.remove('ring-2', 'ring-black', 'ring-offset-2', 'rounded');
       });
     };
-  }, [focusState.mainIndex, focusArea, location.pathname]);
+  }, [mainFocusIndex, focusArea, location.pathname]);
 
   return useMemo(() => ({
-    focusState,
-    getFocusedSection,
-    isExpanded,
-    toggleExpansion,
+    sidebarFocusIndex,
+    bottomButtonIndex,
+    mainFocusIndex,
+    visibleNodes,
+    getFocusedNode,
     bottomButtons,
-  }), [focusState, getFocusedSection, isExpanded, toggleExpansion]);
+  }), [sidebarFocusIndex, bottomButtonIndex, mainFocusIndex, visibleNodes, getFocusedNode, bottomButtons]);
 } 

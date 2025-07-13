@@ -27,8 +27,8 @@ function Page({
   }, [dark]);
 
   const containerClasses = dark 
-    ? "bg-black text-white -m-4 lg:-m-8 min-h-screen [&_a]:!underline [&_.prose_a]:!underline"
-    : "[&_a]:!underline [&_.prose_a]:!underline";
+    ? "bg-black text-white -m-4 lg:-m-8 min-h-screen"
+    : "";
     
   const contentClasses = fullWidth
     ? "p-4 lg:p-8"

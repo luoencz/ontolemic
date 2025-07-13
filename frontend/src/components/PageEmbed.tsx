@@ -76,7 +76,7 @@ export function PageEmbed({
   return (
     <Link 
       to={to} 
-      className={`block hover:no-underline ${className}`}
+      className={`block no-underline hover:no-underline ${className}`}
     >
       <div className="transform transition-all duration-200 hover:scale-[1.02] hover:shadow-md">
         <PageThumbnail 

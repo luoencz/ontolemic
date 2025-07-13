@@ -17,7 +17,7 @@ interface QuoteState {
 }
 
 const initialState: QuoteState = {
-  currentQuote: 'this, too, is it',
+  currentQuote: '',
   loading: false,
   initialized: false,
 };

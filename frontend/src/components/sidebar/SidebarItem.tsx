@@ -1,4 +1,4 @@
-import { PrefetchLink } from '../PrefetchLink';
+import { Link } from 'react-router-dom';
 
 interface SidebarItemProps {
   path: string;
@@ -16,18 +16,16 @@ function SidebarItem({
   isNested = false 
 }: SidebarItemProps) {
   return (
-    <PrefetchLink
+    <Link
       to={path}
-      className={`block py-1 text-sm hover:underline ${
+      className={`block py-1 text-sm no-underline hover:underline ${
         isActive ? 'font-bold' : isNested ? 'text-gray-600' : ''
       } ${
         isFocused ? 'bg-gray-100 px-2 -mx-2 rounded' : ''
       }`}
-      prefetchOn="hover"
-      prefetchDelay={100}
     >
       {label}
-    </PrefetchLink>
+    </Link>
   );
 }
 

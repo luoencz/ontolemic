@@ -1,25 +1,21 @@
-import { Link, useLocation } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { toggleSidebar, toggleSound, setShowSettings, setShowControls } from '../store/slices/uiSlice';
-import { toggleProjects, toggleResearch, toggleBackstage } from '../store/slices/navigationSlice';
 import { useRandomQuote } from '../hooks/useRandomQuote';
-import SidebarItem from './sidebar/SidebarItem';
-import SidebarSection from './sidebar/SidebarSection';
-import { navItems, projectItems, researchItems, backstageItems } from '../config/navigation';
+import SidebarNode from './sidebar/SidebarNode';
+import { navigationTree, backstageTree } from '../config/navigation';
 
 interface SidebarProps {
   keyboardNavigation: {
-    focusState: {
-      navIndex: number;
-      projectIndex: number;
-      researchIndex: number;
-      backstageIndex: number;
-      bottomButtonIndex: number;
-      mainIndex: number;
-    };
-    getFocusedSection: () => any;
-    isExpanded: (node: any) => boolean;
-    toggleExpansion: (node: any) => void;
+    sidebarFocusIndex: number;
+    bottomButtonIndex: number;
+    mainFocusIndex: number;
+    visibleNodes: Array<{
+      node: { id: string; label: string; path?: string; children?: any[] };
+      depth: number;
+      path: string[];
+    }>;
+    getFocusedNode: () => any;
     bottomButtons: Array<{
       id: string;
       action: () => void;
@@ -29,100 +25,56 @@ interface SidebarProps {
 }
 
 function Sidebar({ keyboardNavigation }: SidebarProps) {
-  const location = useLocation();
   const dispatch = useAppDispatch();
   const { sidebarVisible, soundEnabled, backstageUnlocked } = useAppSelector(state => state.ui);
-  const projectsOpen = useAppSelector(state => state.navigation.projectsOpen);
-  const researchOpen = useAppSelector(state => state.navigation.researchOpen);
-  const backstageOpen = useAppSelector(state => state.navigation.backstageOpen);
-  const { quote, loading } = useRandomQuote();
+  const { quote } = useRandomQuote();
   
   // Destructure the keyboard navigation state
-  const { focusState } = keyboardNavigation;
-  const { navIndex, projectIndex, researchIndex, backstageIndex, bottomButtonIndex } = focusState;
+  const { sidebarFocusIndex, bottomButtonIndex, visibleNodes } = keyboardNavigation;
+  
+  // Build the focus path from the currently focused node
+  const focusedPath: string[] = [];
+  if (sidebarFocusIndex >= 0 && sidebarFocusIndex < visibleNodes.length) {
+    const focusedNode = visibleNodes[sidebarFocusIndex];
+    focusedPath.push(...focusedNode.path);
+  }
 
   return (
     <div className={`fixed left-0 top-0 h-full w-64 p-8 flex flex-col transition-all duration-300 ease-in-out bg-white z-30 ${
       sidebarVisible ? 'translate-x-0' : '-translate-x-full'
     }`}>
-      <Link to="/" className="text-2xl font-normal hover:underline">
+      <Link to="/" className="text-2xl font-normal no-underline hover:underline">
         Inner Cosmos
       </Link>
       
       <p className="text-sm text-gray-600 mt-2 mb-8">
-        {loading ? 'this, too, is it' : quote}
+        {quote}
       </p>
 
       <nav className="space-y-2 flex-1">
-        {navItems.map(({ path, label, isDropdown }, index) => (
-          <div key={path}>
-            {isDropdown ? (
-              <SidebarSection
-                path={path}
-                label={label}
-                isOpen={path === '/projects' ? projectsOpen : researchOpen}
-                isActive={location.pathname === path}
-                isFocused={navIndex === index && projectIndex === -1 && researchIndex === -1 && backstageIndex === -1}
-                onToggle={() => path === '/projects' ? dispatch(toggleProjects()) : dispatch(toggleResearch())}
-              >
-                {path === '/projects' ? (
-                  projectItems.map(({ path: projectPath, label: projectLabel }, idx) => (
-                    <SidebarItem
-                      key={projectPath}
-                      path={projectPath}
-                      label={projectLabel}
-                      isActive={location.pathname === projectPath}
-                      isFocused={projectIndex === idx}
-                      isNested
-                    />
-                  ))
-                ) : (
-                  researchItems.map(({ path: researchPath, label: researchLabel }, idx) => (
-                    <SidebarItem
-                      key={researchPath}
-                      path={researchPath}
-                      label={researchLabel}
-                      isActive={location.pathname === researchPath}
-                      isFocused={researchIndex === idx}
-                      isNested
-                    />
-                  ))
-                )}
-              </SidebarSection>
-            ) : (
-              <SidebarItem
-                path={path}
-                label={label}
-                isActive={location.pathname === path}
-                isFocused={navIndex === index && backstageIndex === -1}
-              />
-            )}
-          </div>
-        ))}
+        {navigationTree.map((node) => {
+          const nodeIndex = visibleNodes.findIndex(n => n.node.id === node.id && n.depth === 0);
+          return (
+            <SidebarNode
+              key={node.id}
+              node={node}
+              depth={0}
+              isFocused={sidebarFocusIndex === nodeIndex}
+              focusedPath={focusedPath}
+            />
+          );
+        })}
         
         {/* Backstage section - only visible when unlocked */}
         {backstageUnlocked && (
           <>
             <div className="h-8" /> {/* Wider gap for separation */}
-            <SidebarSection
-              path="/backstage"
-              label="// Backstage"
-              isOpen={backstageOpen}
-              isActive={location.pathname === '/backstage'}
-              isFocused={navIndex === navItems.length && backstageIndex === -1}
-              onToggle={() => dispatch(toggleBackstage())}
-            >
-              {backstageItems.map(({ path: backstagePath, label: backstageLabel }, idx) => (
-                <SidebarItem
-                  key={backstagePath}
-                  path={backstagePath}
-                  label={backstageLabel}
-                  isActive={location.pathname === backstagePath}
-                  isFocused={backstageIndex === idx}
-                  isNested
-                />
-              ))}
-            </SidebarSection>
+            <SidebarNode
+              node={backstageTree}
+              depth={0}
+              isFocused={sidebarFocusIndex === visibleNodes.findIndex(n => n.node.id === 'backstage' && n.depth === 0)}
+              focusedPath={focusedPath}
+            />
           </>
         )}
       </nav>

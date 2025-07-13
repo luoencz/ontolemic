@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAppSelector, useAppDispatch } from '../store/hooks';
 import { setShowSettings, setShowControls } from '../store/slices/uiSlice';
-import { useRandomQuote } from '../hooks/useRandomQuote';
 import Page from '../components/Page';
 import MobileNavSection from '../components/mobile/MobileNavSection';
 import MobileNavItem from '../components/mobile/MobileNavItem';
@@ -12,7 +11,6 @@ function NavigationPage() {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const { backstageUnlocked } = useAppSelector(state => state.ui);
-  const { quote, loading } = useRandomQuote();
   const [projectsOpen, setProjectsOpen] = useState(false);
   const [researchOpen, setResearchOpen] = useState(false);
   const [backstageOpen, setBackstageOpen] = useState(false);
@@ -30,9 +28,6 @@ function NavigationPage() {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-2xl font-normal mb-2">Inner Cosmos</h1>
-          <p className="text-sm text-gray-600">
-            {loading ? 'this, too, is it' : quote}
-          </p>
         </div>
 
         {/* Navigation Items */}
