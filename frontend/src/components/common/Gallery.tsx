@@ -26,9 +26,9 @@ const Gallery: React.FC<GalleryProps> = ({ photos, layout = 'masonry' }) => {
 
   useEffect(() => {
     const defaultPhotos: Photo[] = [
-      { src: '/me-photos/photo1.webp', alt: 'A tall photo of me' },
-      { src: '/me-photos/photo2.webp', alt: 'A wide photo of me' },
-      { src: '/me-photos/photo3.webp', alt: 'A small photo of me' },
+      { src: '/portraits/standing-top-no-face.webp', alt: 'A tall photo of me' },
+      { src: '/portraits/sitting-thinking-looking-in-the-distance.webp', alt: 'A wide photo of me' },
+      { src: '/portraits/lying-thinking-white-socks.webp', alt: 'A small photo of me' },
     ];
     setLoadedPhotos(photos && photos.length > 0 ? photos : defaultPhotos);
   }, [photos]);

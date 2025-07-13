@@ -5,14 +5,14 @@ function Cue() {
   return (
     <Page
       thumbnail={{
-        image: '/cue/cue-preview.webp',
+        image: '/cue/cue-03-lush-forest.webp',
         title: 'Cue - Generative Art',
         summary: 'Transform your emotions into unique visual experiences through AI-powered sentiment analysis and generative algorithms.'
       }}
     >
       <div className="flex flex-col items-center px-4 pt-8">
         <BlurImage
-          src="/cue/cue-preview.webp" 
+          src="/cue/cue-03-lush-forest.webp" 
           alt="Cue art generation preview - abstract emotional visualization"
           className="rounded-lg shadow-lg mb-4 max-w-4xl w-full"
           aspectRatio="16/9"
