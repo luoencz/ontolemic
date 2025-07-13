@@ -2,6 +2,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { toggleNode } from '../../store/slices/navigationSlice';
 import { NavNode } from '../../config/navigation';
+import { Icons } from '../../config/icons';
 
 interface SidebarNodeProps {
   node: NavNode;
@@ -60,19 +61,14 @@ function SidebarNode({ node, depth, isFocused, focusedPath }: SidebarNodeProps) 
                 WebkitTapHighlightColor: 'transparent'
               }}
             >
-              <svg 
+              <Icons.expandSection 
                 className={`w-3 h-3 transition-transform duration-200 ${
                   isExpanded ? 'rotate-180' : 'rotate-0'
                 }`}
-                fill="none" 
-                stroke="currentColor" 
-                viewBox="0 0 24 24"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
+              />
             </button>
           ) : (
-            <span className="text-gray-400">—</span>
+            <Icons.nonExpandableItem className="w-3 h-3" />
           )}
         </div>
         
@@ -91,7 +87,7 @@ function SidebarNode({ node, depth, isFocused, focusedPath }: SidebarNodeProps) 
         )}
         
         {isFocused && (
-          <span className="ml-2 text-gray-400">{'<'}</span>
+          <Icons.currentItem className="w-3 h-3 ml-2 stroke-3" />
         )}
       </div>
       
