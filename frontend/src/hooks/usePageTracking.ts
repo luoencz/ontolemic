@@ -1,8 +1,7 @@
 import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 
-// TODO: Make this configurable via environment variables
-const STATS_API_URL = 'http://localhost:3001';
+const STATS_API_URL = 'https://home.the-o.space/stats';
 
 export function usePageTracking() {
   const location = useLocation();

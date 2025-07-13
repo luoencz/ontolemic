@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import Page from '../../components/pages/Page';
 
-const STATS_API_URL = 'http://localhost:3001';
+const STATS_API_URL = 'https://home.the-o.space/stats';
 
 interface StatsData {
   totalVisits: number;

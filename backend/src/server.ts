@@ -31,18 +31,20 @@ app.get('/health', (req, res) => {
 app.use('/api', statsRoutes);
 
 // Tracking pixel endpoint
-app.get('/t.gif', trackingMiddleware, (req, res) => {
-  // Return 1x1 transparent GIF
-  const pixel = Buffer.from(
-    'R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7',
-    'base64'
-  );
-  res.writeHead(200, {
-    'Content-Type': 'image/gif',
-    'Content-Length': pixel.length,
-    'Cache-Control': 'no-store, no-cache, must-revalidate, private'
+app.get('/t.gif', async (req, res, next) => {
+  await trackingMiddleware(req, res, () => {
+    // Return 1x1 transparent GIF
+    const pixel = Buffer.from(
+      'R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7',
+      'base64'
+    );
+    res.writeHead(200, {
+      'Content-Type': 'image/gif',
+      'Content-Length': pixel.length,
+      'Cache-Control': 'no-store, no-cache, must-revalidate, private'
+    });
+    res.end(pixel);
   });
-  res.end(pixel);
 });
 
 // Start server

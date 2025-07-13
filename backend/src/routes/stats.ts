@@ -25,12 +25,12 @@ router.post('/query', (req: Request, res: Response) => {
     const results = statsService.executeQuery(query);
     res.json(results);
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    res.status(400).json({ error: (error as Error).message });
   }
 });
 
 // Track visit via API (for single-page apps)
-router.post('/track', (req: Request, res: Response) => {
+router.post('/track', async (req: Request, res: Response) => {
   try {
     const { path, title } = req.body;
     
@@ -43,7 +43,7 @@ router.post('/track', (req: Request, res: Response) => {
                req.socket.remoteAddress || 
                'unknown';
 
-    statsService.trackVisit({
+    await statsService.trackVisit({
       path,
       title,
       referrer: req.headers.referer,

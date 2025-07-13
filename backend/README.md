@@ -1,40 +1,72 @@
-# Backend - Inner Cosmos API
+# Backend - Inner Cosmos
 
-FastAPI backend with safe Python code execution.
+Unified backend service running both stats tracking and Python code execution API.
 
-## Quick Setup
+## Services
 
-```bash
-# Create virtual environment and install dependencies
-uv venv
-uv sync
+1. **Stats Tracking Server** (TypeScript) - Port 3001
+   - Page visit tracking with session management
+   - Visitor geolocation using IP addresses
+   - SQLite database for analytics
+   - Privacy-focused (IPs are hashed)
 
-# Run development server
-uv run uvicorn main:app --reload --port 8000
-```
+2. **Python Code Execution API** (FastAPI) - Port 8000
+   - Safe Python code execution environment
+   - WebSocket support for real-time execution
+   - Sandboxed with restricted built-ins
 
-## Dependencies
+## Production Deployment
 
-- **FastAPI**: Web framework for building APIs
-- **uvicorn**: ASGI server for FastAPI
-- **pydantic**: Data validation using Python type annotations
-- **websockets**: WebSocket support for real-time communication
-
-## Adding Dependencies
+The backend runs as a systemd service called `inner-cosmos-backend`.
 
 ```bash
-# Add runtime dependency
-uv add package-name
+# Build and restart the service
+npm run prod
 
-# Add development dependency
-uv add --dev package-name
+# Check service status
+npm run status
 
-# Update dependencies
-uv sync
+# View logs
+npm run logs
 ```
 
-## API Endpoints
+## Manual Development
 
+For development without systemd:
+
+```bash
+# Install dependencies
+npm install
+
+# Run the production script directly
+./scripts/start-prod
+```
+
+## Stats Tracking Features
+
+### Geolocation
+The service uses ipinfo.io for visitor geolocation:
+- **Security**: HTTPS encryption for all requests
+- **Rate limit**: 50,000 requests/month (free tier)
+- **Privacy**: IPs are hashed before storage
+- **Caching**: Results cached to minimize API calls
+- **Fallback**: Graceful handling of errors and private IPs
+
+Note: For production use with higher traffic, consider upgrading to a paid plan for:
+- Higher rate limits
+- SLA guarantees
+- Priority support
+- Advanced features
+
+### API Endpoints
+
+**Stats Service (Port 3001)**
+- `GET /api/stats` - Get all stats
+- `POST /api/query` - Execute custom SQL queries
+- `GET /t.gif` - Tracking pixel
+- `GET /health` - Health check
+
+**Python API (Port 8000)**
 - `GET /` - Health check
 - `POST /execute` - Execute Python code (REST)
 - `WS /ws` - Execute Python code (WebSocket)
@@ -42,7 +74,16 @@ uv sync
 
 ## Security
 
-The execution environment is sandboxed with restricted built-ins and only safe modules:
-- `math`, `random`, `datetime`, `json`
-- Standard built-ins: `print`, `len`, `range`, etc.
-- No file system or network access 
+The Python execution environment is sandboxed with:
+- Restricted built-ins only
+- Safe modules: `math`, `random`, `datetime`, `json`
+- No file system or network access
+- Timeout protection
+
+## Database Schema
+
+Stats are stored in SQLite at `./data/stats.db` with tables for:
+- `visits` - Raw visit data with geolocation
+- `pages` - Aggregated page statistics
+- `sessions` - User session tracking
+- `daily_stats` - Pre-aggregated daily metrics 

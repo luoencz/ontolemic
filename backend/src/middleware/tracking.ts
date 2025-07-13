@@ -25,7 +25,7 @@ function getSessionId(req: Request): string {
 }
 
 // Tracking middleware
-export function trackingMiddleware(req: Request, res: Response, next: NextFunction) {
+export async function trackingMiddleware(req: Request, res: Response, next: NextFunction) {
   // Only track GET requests to avoid tracking API calls
   if (req.method !== 'GET') {
     return next();
@@ -58,7 +58,7 @@ export function trackingMiddleware(req: Request, res: Response, next: NextFuncti
                'unknown';
 
     // Track the visit
-    statsService.trackVisit({
+    await statsService.trackVisit({
       path: req.path,
       referrer: req.headers.referer,
       userAgent: req.headers['user-agent'],

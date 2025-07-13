@@ -1,13 +1,12 @@
 {
   "name": "inner-cosmos-backend",
   "version": "1.0.0",
-  "description": "Backend for Inner Cosmos stats tracking",
+  "description": "Backend for Inner Cosmos",
   "main": "dist/server.js",
   "scripts": {
-    "dev": "tsx watch src/server.ts",
-    "build": "tsc",
-    "start": "node dist/server.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "prod": "sudo systemctl restart inner-cosmos-backend.service",
+    "status": "systemctl status inner-cosmos-backend.service",
+    "logs": "sudo journalctl -u inner-cosmos-backend.service -f"
   },
   "keywords": ["stats", "analytics", "sqlite"],
   "author": "Theo Ryzhenkov",

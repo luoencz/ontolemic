@@ -1,6 +1,7 @@
 import { db } from '../db/init';
 import crypto from 'crypto';
 import { Request } from 'express';
+import { geoService } from './geoService';
 
 interface TrackVisitParams {
   path: string;
@@ -18,13 +19,16 @@ export class StatsService {
   }
 
   // Track a page visit
-  trackVisit(params: TrackVisitParams): void {
+  async trackVisit(params: TrackVisitParams): Promise<void> {
     const ipHash = this.hashIP(params.ip);
+    
+    // Get geolocation data
+    const location = await geoService.getLocation(params.ip);
     
     // Insert visit record
     const stmt = db.prepare(`
-      INSERT INTO visits (path, referrer, user_agent, ip_hash, session_id)
-      VALUES (?, ?, ?, ?, ?)
+      INSERT INTO visits (path, referrer, user_agent, ip_hash, session_id, country, city)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
     `);
     
     stmt.run(
@@ -32,7 +36,9 @@ export class StatsService {
       params.referrer || null,
       params.userAgent || null,
       ipHash,
-      params.sessionId
+      params.sessionId,
+      location.country,
+      location.city
     );
 
     // Update or create session
@@ -146,12 +152,12 @@ export class StatsService {
         return { columns: [], rows: [] };
       }
       
-      const columns = Object.keys(rows[0]);
-      const data = rows.map(row => columns.map(col => row[col]));
+      const columns = Object.keys(rows[0] as Record<string, any>);
+      const data = rows.map((row: any) => columns.map(col => row[col]));
       
       return { columns, rows: data };
     } catch (error) {
-      throw new Error(`Query error: ${error.message}`);
+      throw new Error(`Query error: ${(error as Error).message}`);
     }
   }
 
