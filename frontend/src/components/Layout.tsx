@@ -3,6 +3,7 @@ import { Outlet } from 'react-router-dom';
 import { useAppSelector } from '../store/hooks';
 import { useKeyboardNavigation } from '../hooks/useKeyboardNavigation';
 import { useSearchHighlight } from '../hooks/useSearchHighlight';
+import { usePageTracking } from '../hooks/usePageTracking';
 import DesktopNavigationWrapper from './navigation/DesktopNavigationWrapper';
 import SidebarToggle from './sidebar/SidebarToggle';
 import MobileNav from './navigation/MobileNav';
@@ -23,6 +24,9 @@ export function Layout() {
   
   // Enable search highlighting on all pages
   useSearchHighlight();
+  
+  // Track page views
+  usePageTracking();
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
