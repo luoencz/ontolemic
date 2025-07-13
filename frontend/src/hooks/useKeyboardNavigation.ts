@@ -280,70 +280,72 @@ export function useKeyboardNavigation() {
     const current = mainFocusIndex >= 0 && mainFocusIndex < elements.length ? 
                    elements[mainFocusIndex] : null;
 
-    const findClosest = (candidates: typeof elements) => 
-      candidates.reduce((prev, curr) => {
+    // Calculate angle between two points (in degrees, 0° is right, 90° is down)
+    const getAngle = (from: { x: number; y: number }, to: { x: number; y: number }) => {
+      const dx = to.x - from.x;
+      const dy = to.y - from.y;
+      let angle = Math.atan2(dy, dx) * (180 / Math.PI);
+      // Normalize to 0-360
+      if (angle < 0) angle += 360;
+      return angle;
+    };
+
+    // Check if angle is within a sector (handles wrap-around at 0/360)
+    const isAngleInSector = (angle: number, sectorCenter: number, sectorWidth: number) => {
+      const halfWidth = sectorWidth / 2;
+      let diff = Math.abs(angle - sectorCenter);
+      if (diff > 180) diff = 360 - diff;
+      return diff <= halfWidth;
+    };
+
+    // Define overlapping sectors for each direction
+    // Each sector is 120° wide, creating 60° overlaps
+    const sectors = {
+      'ArrowRight': { center: 0, width: 120 },    // -60° to 60°
+      'ArrowDown': { center: 90, width: 120 },   // 30° to 150°
+      'ArrowLeft': { center: 180, width: 120 },  // 120° to 240°
+      'ArrowUp': { center: 270, width: 120 }      // 210° to 330°
+    };
+
+    const findBestCandidate = (candidates: typeof elements) => {
+      if (candidates.length === 0) return null;
+      
+      // Sort by distance
+      return candidates.reduce((prev, curr) => {
         const prevDist = Math.hypot(current!.x - prev.x, current!.y - prev.y);
         const currDist = Math.hypot(current!.x - curr.x, current!.y - curr.y);
         return currDist < prevDist ? curr : prev;
       });
+    };
 
     switch (key) {
       case 'ArrowUp':
-        if (!event.metaKey && !event.ctrlKey) event.preventDefault();
-        if (current) {
-          const candidates = elements.filter(el => 
-            el.y < current.y - 10 && 
-            Math.abs(el.x - current.x) < Math.max(el.rect.width, current.rect.width)
-          );
-          if (candidates.length > 0) {
-            setMainFocusIndex(findClosest(candidates).index);
-          }
-        } else {
-          setMainFocusIndex(0);
-        }
-        break;
-
       case 'ArrowDown':
-        if (!event.metaKey && !event.ctrlKey) event.preventDefault();
-        if (current) {
-          const candidates = elements.filter(el => 
-            el.y > current.y + 10 && 
-            Math.abs(el.x - current.x) < Math.max(el.rect.width, current.rect.width)
-          );
-          if (candidates.length > 0) {
-            setMainFocusIndex(findClosest(candidates).index);
-          }
-        } else {
-          setMainFocusIndex(0);
-        }
-        break;
-
       case 'ArrowLeft':
-        if (!event.metaKey && !event.ctrlKey) event.preventDefault();
-        if (current) {
-          const candidates = elements.filter(el => 
-            el.x < current.x - 10 && 
-            Math.abs(el.y - current.y) < Math.max(el.rect.height, current.rect.height) / 2
-          );
-          if (candidates.length > 0) {
-            setMainFocusIndex(findClosest(candidates).index);
-          } else if (sidebarVisible) {
-            dispatch(setFocusArea('sidebar'));
-          }
-        } else {
-          setMainFocusIndex(0);
-        }
-        break;
-
       case 'ArrowRight':
         if (!event.metaKey && !event.ctrlKey) event.preventDefault();
+        
         if (current) {
-          const candidates = elements.filter(el => 
-            el.x > current.x + 10 && 
-            Math.abs(el.y - current.y) < Math.max(el.rect.height, current.rect.height) / 2
-          );
-          if (candidates.length > 0) {
-            setMainFocusIndex(findClosest(candidates).index);
+          const sector = sectors[key];
+          
+          // Find all elements in the direction's sector
+          const candidates = elements.filter(el => {
+            if (el === current) return false;
+            
+            // Must be at least 10px away to avoid selecting the same element
+            const distance = Math.hypot(el.x - current.x, el.y - current.y);
+            if (distance < 10) return false;
+            
+            const angle = getAngle(current, el);
+            return isAngleInSector(angle, sector.center, sector.width);
+          });
+          
+          const best = findBestCandidate(candidates);
+          if (best) {
+            setMainFocusIndex(best.index);
+          } else if (key === 'ArrowLeft' && sidebarVisible) {
+            // Special case: if no element found on left and sidebar is visible, switch to it
+            dispatch(setFocusArea('sidebar'));
           }
         } else {
           setMainFocusIndex(0);
@@ -494,6 +496,54 @@ export function useKeyboardNavigation() {
       focusableElements.forEach((element, index) => {
         if (index === mainFocusIndex) {
           element.classList.add('ring-2', 'ring-black', 'ring-offset-2', 'rounded');
+          
+          // Scroll element into view with padding
+          const elementRect = element.getBoundingClientRect();
+          const viewportHeight = window.innerHeight;
+          const viewportWidth = window.innerWidth;
+          
+          // Check if element is outside viewport
+          const isOutOfView = elementRect.top < 0 || 
+                             elementRect.bottom > viewportHeight ||
+                             elementRect.left < 0 ||
+                             elementRect.right > viewportWidth;
+          
+          if (isOutOfView) {
+            // Calculate the desired scroll position with 25% padding
+            const scrollPaddingPercent = 0.25;
+            
+            // For vertical scrolling
+            if (elementRect.top < 0 || elementRect.bottom > viewportHeight) {
+              const elementCenterY = elementRect.top + elementRect.height / 2 + window.scrollY;
+              const targetScrollY = elementCenterY - (viewportHeight / 2);
+              
+              // Add padding based on direction
+              let adjustedScrollY = targetScrollY;
+              if (elementRect.top < 0) {
+                // Element is above viewport, add padding to top
+                adjustedScrollY = elementRect.top + window.scrollY - (viewportHeight * scrollPaddingPercent);
+              } else {
+                // Element is below viewport, add padding to bottom
+                adjustedScrollY = elementRect.bottom + window.scrollY - viewportHeight + (viewportHeight * scrollPaddingPercent);
+              }
+              
+              window.scrollTo({
+                top: Math.max(0, adjustedScrollY),
+                behavior: 'smooth'
+              });
+            }
+            
+            // For horizontal scrolling (if needed)
+            if (elementRect.left < 0 || elementRect.right > viewportWidth) {
+              const elementCenterX = elementRect.left + elementRect.width / 2 + window.scrollX;
+              const targetScrollX = elementCenterX - (viewportWidth / 2);
+              
+              window.scrollTo({
+                left: Math.max(0, targetScrollX),
+                behavior: 'smooth'
+              });
+            }
+          }
         } else {
           element.classList.remove('ring-2', 'ring-black', 'ring-offset-2', 'rounded');
         }
