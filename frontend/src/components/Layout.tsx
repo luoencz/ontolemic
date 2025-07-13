@@ -4,6 +4,8 @@ import { useAppSelector } from '../store/hooks';
 import { useKeyboardNavigation } from '../hooks/useKeyboardNavigation';
 import { useSearchHighlight } from '../hooks/useSearchHighlight';
 import { usePageTracking } from '../hooks/usePageTracking';
+import { useExternalLinkTracking } from '../hooks/useExternalLinkTracking';
+import { useActivityTracking } from '../hooks/useActivityTracking';
 import DesktopNavigationWrapper from './navigation/DesktopNavigationWrapper';
 import SidebarToggle from './sidebar/SidebarToggle';
 import MobileNav from './navigation/MobileNav';
@@ -11,11 +13,7 @@ import MobileNavigationWrapper from './navigation/MobileNavigationWrapper';
 import ControlsModal from './modals/ControlsModal';
 import SettingsModal from './modals/SettingsModal';
 import { Search } from './search/Search';
-
-const PageContentLoader = () => (
-  <div className="flex items-center justify-center w-full" style={{ minHeight: 'calc(100vh - 12rem)'}}>
-  </div>
-);
+import PageContentLoader from './common/PageContentLoader';
 
 export function Layout() {
   const sidebarVisible = useAppSelector(state => state.ui.sidebarVisible);
@@ -27,6 +25,12 @@ export function Layout() {
   
   // Track page views
   usePageTracking();
+  
+  // Track external link clicks
+  useExternalLinkTracking();
+  
+  // Track user activity and engagement
+  useActivityTracking();
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {

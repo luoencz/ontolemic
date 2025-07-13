@@ -1,6 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
 import { statsService } from '../services/statsService';
-import crypto from 'crypto';
 
 // Extend Express Request type
 declare global {
@@ -9,19 +8,6 @@ declare global {
       sessionId?: string;
     }
   }
-}
-
-// Generate or retrieve session ID
-function getSessionId(req: Request): string {
-  // Check for existing session ID in cookie
-  let sessionId = req.cookies?.sessionId;
-  
-  if (!sessionId) {
-    // Generate new session ID
-    sessionId = crypto.randomUUID();
-  }
-  
-  return sessionId;
 }
 
 // Tracking middleware
@@ -38,17 +24,12 @@ export async function trackingMiddleware(req: Request, res: Response, next: Next
   }
 
   try {
-    const sessionId = getSessionId(req);
-    req.sessionId = sessionId;
-
-    // Set session cookie if new
-    if (!req.cookies?.sessionId) {
-      res.cookie('sessionId', sessionId, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
-      });
+    // sessionId is now set by session middleware
+    const sessionId = req.sessionId;
+    
+    if (!sessionId) {
+      console.error('No sessionId available in tracking middleware');
+      return next();
     }
 
     // Get client IP (handle proxies)

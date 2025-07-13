@@ -5,11 +5,38 @@ const STATS_API_URL = 'https://home.the-o.space/stats';
 
 interface StatsData {
   totalVisits: number;
+  totalPageViews: number;
   uniqueVisitors: number;
   lastUpdate: string;
   topPages: Array<{ path: string; visits: number; percentage: number }>;
   visitorLocations: Array<{ country: string; city?: string; visits: number }>;
   recentVisits: Array<{ timestamp: string; path: string; referrer?: string }>;
+  topExternalLinks: Array<{ domain: string; clicks: number; unique_clickers: number; last_clicked: string }>;
+  recentExternalLinks: Array<{ timestamp: string; url: string; domain: string; page_path: string; click_context?: string }>;
+  activeSessionStats?: {
+    avgSessionDuration: number;
+    avgPagesPerSession: number;
+    topEngagedPages: Array<{
+      page_path: string;
+      unique_sessions: number;
+      total_time: number;
+      avg_time: number;
+      avg_scroll_depth: number;
+      total_interactions: number;
+    }>;
+    sessionsByDuration: Array<{
+      duration_bucket: string;
+      session_count: number;
+    }>;
+  };
+  recentActiveSessions?: Array<{
+    start_time: string;
+    end_time: string;
+    total_duration: number;
+    page_count: number;
+    interaction_count: number;
+    ip_hash: string;
+  }>;
 }
 
 function Stats() {
@@ -80,6 +107,7 @@ function Stats() {
           <div className="text-gray-500 mb-2">## OVERVIEW</div>
           <div className="grid grid-cols-2 gap-x-8 gap-y-1">
             <div>total_visits</div><div>{stats.totalVisits}</div>
+            <div>total_page_views</div><div>{stats.totalPageViews}</div>
             <div>unique_visitors</div><div>{stats.uniqueVisitors}</div>
             <div>last_update</div><div>{stats.lastUpdate}</div>
           </div>
@@ -126,6 +154,100 @@ function Stats() {
             ))}
           </div>
         </div>
+
+        {/* Top External Links */}
+        <div>
+          <div className="text-gray-500 mb-2">## TOP_EXTERNAL_LINKS</div>
+          <div className="space-y-1">
+            {stats.topExternalLinks?.map((link) => (
+              <div key={link.domain} className="grid grid-cols-4 gap-x-8">
+                <div>{link.domain}</div>
+                <div>{link.clicks} clicks</div>
+                <div>{link.unique_clickers} users</div>
+                <div>{link.last_clicked}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Recent External Link Clicks */}
+        <div>
+          <div className="text-gray-500 mb-2">## RECENT_EXTERNAL_CLICKS</div>
+          <div className="space-y-1">
+            {stats.recentExternalLinks?.map((link, index) => (
+              <div key={index} className="grid grid-cols-4 gap-x-8">
+                <div>{link.timestamp}</div>
+                <div className="truncate">{link.domain}</div>
+                <div>{link.page_path}</div>
+                <div className="truncate">{link.click_context || 'N/A'}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Active Session Overview */}
+        {stats.activeSessionStats && (
+          <div>
+            <div className="text-gray-500 mb-2">## SESSION_ANALYTICS</div>
+            <div className="grid grid-cols-2 gap-x-8 gap-y-1 mb-4">
+              <div>avg_session_duration</div>
+              <div>{stats.activeSessionStats.avgSessionDuration}s</div>
+              <div>avg_pages_per_session</div>
+              <div>{stats.activeSessionStats.avgPagesPerSession}</div>
+            </div>
+          </div>
+        )}
+
+        {/* Session Duration Distribution */}
+        {stats.activeSessionStats?.sessionsByDuration && (
+          <div>
+            <div className="text-gray-500 mb-2">## SESSION_DURATION_DISTRIBUTION</div>
+            <div className="space-y-1">
+              {stats.activeSessionStats.sessionsByDuration.map((bucket) => (
+                <div key={bucket.duration_bucket} className="grid grid-cols-2 gap-x-8">
+                  <div>{bucket.duration_bucket}</div>
+                  <div>{bucket.session_count} sessions</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Top Engaged Pages */}
+        {stats.activeSessionStats?.topEngagedPages && (
+          <div>
+            <div className="text-gray-500 mb-2">## TOP_ENGAGED_PAGES</div>
+            <div className="space-y-1">
+              {stats.activeSessionStats.topEngagedPages.map((page) => (
+                <div key={page.page_path} className="grid grid-cols-5 gap-x-8">
+                  <div>{page.page_path}</div>
+                  <div>{Math.round(page.total_time / 60)}m total</div>
+                  <div>{Math.round(page.avg_time)}s avg</div>
+                  <div>{page.avg_scroll_depth}% viewed</div>
+                  <div>{page.total_interactions} actions</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Recent Active Sessions */}
+        {stats.recentActiveSessions && (
+          <div>
+            <div className="text-gray-500 mb-2">## RECENT_ACTIVE_SESSIONS</div>
+            <div className="space-y-1">
+              {stats.recentActiveSessions.map((session, index) => (
+                <div key={index} className="grid grid-cols-5 gap-x-8">
+                  <div>{session.start_time}</div>
+                  <div>{session.total_duration}s</div>
+                  <div>{session.page_count} pages</div>
+                  <div>{session.interaction_count} actions</div>
+                  <div className="text-xs truncate">{session.ip_hash.substring(0, 8)}...</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Query Interface */}
@@ -195,6 +317,43 @@ CREATE TABLE pages (
   first_visit DATETIME,
   last_visit DATETIME,
   total_visits INTEGER DEFAULT 0
+);
+
+CREATE TABLE external_links (
+  id INTEGER PRIMARY KEY,
+  timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+  url TEXT NOT NULL,
+  domain TEXT NOT NULL,
+  page_path TEXT NOT NULL,
+  session_id TEXT,
+  ip_hash TEXT,
+  click_context TEXT
+);
+
+CREATE TABLE active_sessions (
+  id INTEGER PRIMARY KEY,
+  session_id TEXT NOT NULL,
+  ip_hash TEXT NOT NULL,
+  start_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+  end_time DATETIME,
+  total_duration INTEGER DEFAULT 0,
+  page_count INTEGER DEFAULT 0,
+  interaction_count INTEGER DEFAULT 0,
+  user_agent TEXT,
+  is_active BOOLEAN DEFAULT 1
+);
+
+CREATE TABLE page_engagement (
+  id INTEGER PRIMARY KEY,
+  active_session_id INTEGER NOT NULL,
+  page_path TEXT NOT NULL,
+  page_title TEXT,
+  start_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+  end_time DATETIME,
+  duration INTEGER DEFAULT 0,
+  interaction_count INTEGER DEFAULT 0,
+  scroll_depth INTEGER DEFAULT 0,
+  FOREIGN KEY (active_session_id) REFERENCES active_sessions(id)
 );`}
         </pre>
       </div>

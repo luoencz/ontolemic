@@ -37,6 +37,10 @@ router.post('/track', async (req: Request, res: Response) => {
     if (!path) {
       return res.status(400).json({ error: 'Path is required' });
     }
+    
+    if (!req.sessionId) {
+      return res.status(400).json({ error: 'No session ID available' });
+    }
 
     const ip = req.headers['x-forwarded-for'] as string || 
                req.headers['x-real-ip'] as string || 
@@ -49,12 +53,104 @@ router.post('/track', async (req: Request, res: Response) => {
       referrer: req.headers.referer,
       userAgent: req.headers['user-agent'],
       ip: ip.split(',')[0].trim(),
-      sessionId: req.sessionId || 'api-' + Date.now()
+      sessionId: req.sessionId
     });
 
     res.json({ success: true });
   } catch (error) {
     res.status(500).json({ error: 'Failed to track visit' });
+  }
+});
+
+// Track external link click
+router.post('/track-link', async (req: Request, res: Response) => {
+  try {
+    const { url, pagePath, context } = req.body;
+    
+    if (!url || !pagePath) {
+      return res.status(400).json({ error: 'URL and page path are required' });
+    }
+    
+    if (!req.sessionId) {
+      return res.status(400).json({ error: 'No session ID available' });
+    }
+
+    const ip = req.headers['x-forwarded-for'] as string || 
+               req.headers['x-real-ip'] as string || 
+               req.socket.remoteAddress || 
+               'unknown';
+
+    await statsService.trackExternalLink({
+      url,
+      pagePath,
+      sessionId: req.sessionId,
+      ip: ip.split(',')[0].trim(),
+      context
+    });
+
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to track link click' });
+  }
+});
+
+// Track user activity
+router.post('/track-activity', async (req: Request, res: Response) => {
+  try {
+    const { pagePath, pageTitle, interactionType, details } = req.body;
+    
+    if (!pagePath || !interactionType) {
+      return res.status(400).json({ error: 'Page path and interaction type are required' });
+    }
+    
+    if (!req.sessionId) {
+      return res.status(400).json({ error: 'No session ID available' });
+    }
+
+    const ip = req.headers['x-forwarded-for'] as string || 
+               req.headers['x-real-ip'] as string || 
+               req.socket.remoteAddress || 
+               'unknown';
+
+    await statsService.trackActivity({
+      sessionId: req.sessionId,
+      ip: ip.split(',')[0].trim(),
+      pagePath,
+      pageTitle,
+      interactionType,
+      details,
+      userAgent: req.headers['user-agent']
+    });
+
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to track activity' });
+  }
+});
+
+// Update page engagement metrics
+router.post('/update-engagement', async (req: Request, res: Response) => {
+  try {
+    const { pagePath, duration, scrollDepth } = req.body;
+    
+    if (!pagePath || duration === undefined) {
+      return res.status(400).json({ error: 'Page path and duration are required' });
+    }
+    
+    if (!req.sessionId) {
+      return res.status(400).json({ error: 'No session ID available' });
+    }
+
+    await statsService.updatePageEngagement({
+      sessionId: req.sessionId,
+      pagePath,
+      duration,
+      scrollDepth
+    });
+
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to update engagement' });
   }
 });
 
