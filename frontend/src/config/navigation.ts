@@ -31,6 +31,7 @@ export const backstageTree: NavNode = {
   path: '/backstage',
   children: [
     { id: 'quotes', label: 'Quotes.yaml', path: '/backstage/quotes' },
+    { id: 'stats', label: 'Stats.db', path: '/backstage/stats' },
   ],
 };
 

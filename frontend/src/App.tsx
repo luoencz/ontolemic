@@ -10,6 +10,7 @@ const Projects = lazy(() => import('./pages/Projects'));
 const Research = lazy(() => import('./pages/Research'));
 const Backstage = lazy(() => import('./pages/backstage/Backstage'));
 const Quotes = lazy(() => import('./pages/backstage/Quotes'));
+const Stats = lazy(() => import('./pages/backstage/Stats'));
 const Cue = lazy(() => import('./pages/projects/Cue'));
 
 function App() {
@@ -33,6 +34,7 @@ function App() {
           {/* Backstage pages */}
           <Route path="backstage" element={<Backstage />} />
           <Route path="backstage/quotes" element={<Quotes />} />
+          <Route path="backstage/stats" element={<Stats />} />
         </Route>
       </Routes>
     </Router>
