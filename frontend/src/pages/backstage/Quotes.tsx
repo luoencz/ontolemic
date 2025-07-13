@@ -26,9 +26,7 @@ function Quotes() {
 
   if (isLoading) {
     return (
-      <Page dark>
-        <p>Loading quotes...</p>
-      </Page>
+      <Page dark/>
     );
   }
 

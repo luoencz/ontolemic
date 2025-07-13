@@ -21,7 +21,7 @@ export interface PageMetadata {
 }
 
 export interface PageProps {
-  children: React.ReactNode;
+  children?: React.ReactNode;
   title?: string;
   className?: string;
   fullWidth?: boolean;
