@@ -9,6 +9,10 @@ dependencies = [
     "python-multipart>=0.0.6",
     "websockets>=12.0",
     "pydantic>=2.5.0",
+    "sqlalchemy>=2.0.41",
+    "aiosqlite>=0.21.0",
+    "apscheduler>=3.11.0",
+    "pydantic-settings>=2.10.1",
 ]
 
 [project.optional-dependencies]

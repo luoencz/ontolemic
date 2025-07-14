@@ -4,11 +4,16 @@
   "description": "Backend for Inner Cosmos",
   "main": "dist/server.js",
   "scripts": {
+    "delete-db": "node scripts/delete-db.js",
     "prod": "sudo systemctl restart inner-cosmos-backend.service",
     "status": "systemctl status inner-cosmos-backend.service",
     "logs": "sudo journalctl -u inner-cosmos-backend.service -f"
   },
-  "keywords": ["stats", "analytics", "sqlite"],
+  "keywords": [
+    "stats",
+    "analytics",
+    "sqlite"
+  ],
   "author": "Theo Ryzhenkov",
   "license": "ISC",
   "dependencies": {
@@ -16,12 +21,16 @@
     "@types/cookie-parser": "^1.4.8",
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
+    "@types/lodash": "^4.17.20",
+    "@types/ws": "^8.18.1",
     "better-sqlite3": "^12.2.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
+    "lodash": "^4.17.21",
     "tsx": "^4.19.2",
-    "typescript": "^5.7.3"
+    "typescript": "^5.7.3",
+    "ws": "^8.18.3"
   }
 }

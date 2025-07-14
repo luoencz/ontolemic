@@ -14,6 +14,7 @@ const Stats = lazy(() => import('./pages/backstage/Stats'));
 const Cue = lazy(() => import('./pages/projects/Cue'));
 
 function App() {
+  
   return (
     <Router>
       <Routes>

@@ -1,6 +1,5 @@
 import Page from '../components/pages/Page';
 import Gallery from '../components/common/Gallery';
-import { PageEmbed } from '../components/pages/PageEmbed';
 
 function About() {
   const aboutPageLayout = {
@@ -27,14 +26,7 @@ function About() {
       
       <Gallery layout={aboutPageLayout} />
       
-      <div className="mt-8">
-        <h2 className="text-lg font-normal mb-4">Explore More</h2>
-        <div className="space-y-3">
-          <PageEmbed to="/projects" size="medium" />
-          <PageEmbed to="/blog" size="medium" />
-          <PageEmbed to="/research" size="medium" />
-        </div>
-      </div>
+      {/* I have been born in 2005, in a small town of Academgorodook, in in 20 something kilometers from Nosovibirsk. When I was only 3, my family moved to Saint Petersburg, where I lived until the february of 2022. There, I studied in a private school and planned to go to university of ITMO. During my high school years, I dabbled in dance, theatre, indie game development, and picked up my life-long passion for TTRPGs and snowboarding. In the meanwhile, I attended Yandex ML program. I also have achieved a 0.03 percentile of the world on EUW server of LoL as a toplaner, and played in a number of tournaments. When I moved to Tbilisi, I applied to university of ISU, where I will have finished my CS bachelor's degree in 2026. In the spring of 2024, I have been hired into Palisade Research. In the summer of 2024, I have attended AISF program. In the fall of 2024, I have attended ARENA and have been accepted to ESPR */}
     </Page>
   );
 }
