@@ -12,5 +12,8 @@ class Visitor(Base):
     ip_hash = Column(String)
     created_at = Column(DateTime, default=datetime.utcnow)
     last_seen_at = Column(DateTime, default=datetime.utcnow)
+    country_code = Column(String)
+    region = Column(String)
+    city = Column(String)
 
     sessions = relationship('Session', back_populates='visitor') 

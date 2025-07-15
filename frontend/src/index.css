@@ -41,17 +41,9 @@
 }
 
 /* Code blocks */
-pre {
-  background: #f5f5f5;
-  padding: 1rem;
-  overflow-x: auto;
-  font-family: 'Courier New', monospace;
-  font-size: 0.9em;
-}
 
 code {
   font-family: 'Courier New', monospace;
-  background: #f5f5f5;
   padding: 0.1rem 0.3rem;
 }
 

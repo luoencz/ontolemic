@@ -8,6 +8,10 @@ export interface StatsData {
   activeSessions: number;
   avgSessionDuration: number;
   avgActionsPerSession: number;
+  visitorCountries: Array<{
+    countryCode: string;
+    count: number;
+  }>;
   recentSessions: Array<{
     id: number;
     startTime: string;
@@ -15,6 +19,11 @@ export interface StatsData {
     duration?: number;
     actionCount: number;
     isActive: boolean;
+    visitorLocation?: {
+      city: string;
+      region: string;
+      countryCode: string;
+    };
   }>;
   lastUpdate: string; 
 };

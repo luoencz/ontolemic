@@ -2,6 +2,7 @@
 from datetime import datetime
 from sqlalchemy import func, desc
 from sqlalchemy.future import select
+from sqlalchemy.orm import joinedload
 from ..models import Session, Visitor
 from ..database import LocalSession
 
@@ -39,9 +40,20 @@ async def compute_stats():
         )
         active_sessions = active_sessions_result.scalar()
         
-        # Recent sessions (last 10)
+        # Visitor countries
+        visitor_countries_result = await db.execute(
+            select(Visitor.country_code, func.count(Visitor.id))
+            .group_by(Visitor.country_code)
+            .order_by(desc(func.count(Visitor.id)))
+        )
+        visitor_countries = visitor_countries_result.all()
+        
+        # Recent sessions with visitors
         recent_sessions_result = await db.execute(
-            select(Session).order_by(desc(Session.start_time)).limit(10)
+            select(Session)
+            .options(joinedload(Session.visitor))
+            .order_by(desc(Session.start_time))
+            .limit(10)
         )
         recent_sessions = recent_sessions_result.scalars().all()
         
@@ -63,6 +75,10 @@ async def compute_stats():
             'activeSessions': active_sessions or 0,
             'avgSessionDuration': round(avg_duration, 2),
             'avgActionsPerSession': round(avg_actions, 2),
+            'visitorCountries': [
+                {'countryCode': row[0], 'count': row[1]} 
+                for row in visitor_countries if row[0]
+            ],
             'recentSessions': [
                 {
                     'id': sess.id,
@@ -70,7 +86,12 @@ async def compute_stats():
                     'endTime': sess.end_time.isoformat() if sess.end_time else None,
                     'duration': sess.duration,
                     'actionCount': sess.action_count,
-                    'isActive': sess.is_active
+                    'isActive': sess.is_active,
+                    'visitorLocation': {
+                        'city': sess.visitor.city,
+                        'region': sess.visitor.region,
+                        'countryCode': sess.visitor.country_code
+                    } if sess.visitor.country_code else None
                 }
                 for sess in recent_sessions
             ],

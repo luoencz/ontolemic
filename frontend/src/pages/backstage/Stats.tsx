@@ -1,11 +1,26 @@
 import { useState, useEffect } from 'react';
 import Page from '../../components/pages/Page';
 import { useLiveStats } from '../../hooks/useLiveStats';
+import React from 'react';
+
+/**
+ * Generate a random hash string for session display using Web Crypto API
+ */
+async function generateSessionHash(sessionId: number): Promise<string> {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(`session-${sessionId}-inner-cosmos`);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  // Return first 8 characters of the hash
+  return hashHex.substring(0, 8);
+}
 
 function Stats() {
   const { stats, connected, lastUpdate, reconnect } = useLiveStats();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [sessionHashes, setSessionHashes] = useState<Map<number, string>>(new Map());
 
   useEffect(() => {
     if (stats) {
@@ -13,6 +28,18 @@ function Stats() {
       setError(null);
     }
   }, [stats]);
+
+  // Generate hashes for active sessions
+  useEffect(() => {
+    const activeSessions = stats?.recentSessions?.filter(session => session.isActive) || [];
+    
+    activeSessions.forEach(async (session) => {
+      if (!sessionHashes.has(session.id)) {
+        const hash = await generateSessionHash(session.id);
+        setSessionHashes(prev => new Map(prev).set(session.id, hash));
+      }
+    });
+  }, [stats?.recentSessions, sessionHashes]);
 
   if (loading) {
     return <Page title="Stats.db" dark className="font-mono text-sm text-gray-500">Loading live stats...</Page>;
@@ -22,69 +49,82 @@ function Stats() {
     return <Page title="Stats.db" dark className="font-mono text-sm text-red-400">Error: {error}</Page>;
   }
 
+  // Filter only active sessions
+  const activeSessions = stats?.recentSessions?.filter(session => session.isActive) || [];
+
   return (
     <Page title="Stats.db" dark className="space-y-8">
-      <div className="font-mono text-sm">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center space-x-4">
-            <div className="text-gray-500">## LIVE_STATUS</div>
-            <div className={`flex items-center space-x-2 ${connected ? 'text-green-400' : 'text-red-400'}`}>
-              <div className={`w-2 h-2 rounded-full ${connected ? 'bg-green-400' : 'bg-red-400'}`}></div>
-              <span>{connected ? 'CONNECTED' : 'DISCONNECTED'}</span>
+      <div className="font-mono text-sm text-gray-300 space-y-6">
+        {/* Live Status */}
+        <div>
+          <div className="text-gray-500 mb-2">## LIVE_STATUS</div>
+          <div className="grid grid-cols-3 gap-x-8 gap-y-1">
+            <div>connection</div>
+            <div className={connected ? 'text-green-400' : 'text-red-400'}>
+              {connected ? 'CONNECTED' : 'DISCONNECTED'}
             </div>
-            {!connected && (
-              <button onClick={reconnect} className="text-blue-400 hover:text-blue-300">
-                RECONNECT
-              </button>
-            )}
-          </div>
-          <div className="text-gray-500">
-            last_update: {lastUpdate ? new Date(lastUpdate).toLocaleTimeString() : 'never'}
+            <div>
+              {!connected && (
+                <button onClick={reconnect} className="text-blue-400 hover:text-blue-300">
+                  RECONNECT
+                </button>
+              )}
+            </div>
+            <div>last_update</div>
+            <div>{lastUpdate ? new Date(lastUpdate).toLocaleTimeString() : 'never'}</div>
+            <div></div>
           </div>
         </div>
+
         {stats && (
-          <div className="space-y-6">
-            <div className="bg-gray-900 p-4 rounded-lg">
-              <h3 className="text-green-400 mb-2">## OVERVIEW</h3>
-              <div className="grid grid-cols-2 gap-4 text-gray-300">
-                <div>Total Visitors: {stats.totalVisitors}</div>
-                <div>Total Sessions: {stats.totalSessions}</div>
-                <div>Active Sessions: <span className="text-green-400">{stats.activeSessions}</span></div>
-                <div>Avg Session Duration: {stats.avgSessionDuration}s</div>
-                <div>Avg Actions/Session: {stats.avgActionsPerSession}</div>
+          <>
+            {/* Overview */}
+            <div>
+              <div className="text-gray-500 mb-2">## OVERVIEW</div>
+              <div className="grid grid-cols-2 gap-x-8 gap-y-1">
+                <div>unique_visitors</div><div>{stats.totalVisitors}</div>
+                <div>total_sessions</div><div>{stats.totalSessions}</div>
               </div>
             </div>
             
-            {stats.recentSessions && stats.recentSessions.length > 0 && (
-              <div className="bg-gray-900 p-4 rounded-lg">
-                <h3 className="text-green-400 mb-2">## RECENT_SESSIONS</h3>
-                <div className="space-y-2 text-gray-300">
-                  {stats.recentSessions.map((session: any) => (
-                    <div key={session.id} className="border-l-2 border-gray-700 pl-2">
-                      <div className="flex justify-between">
-                        <span>Session #{session.id}</span>
-                        <span className={session.isActive ? 'text-green-400' : 'text-gray-500'}>
-                          {session.isActive ? 'ACTIVE' : 'ENDED'}
-                        </span>
+            {/* Visitor Countries */}
+            {stats.visitorCountries && stats.visitorCountries.length > 0 && (
+              <div>
+                <div className="text-gray-500 mb-2">## VISITOR_COUNTRIES</div>
+                <div className="grid grid-cols-2 gap-x-8 gap-y-1">
+                  {stats.visitorCountries.map((loc: any) => (
+                    <React.Fragment key={loc.countryCode}>
+                      <div>{loc.countryCode}</div>
+                      <div>{loc.count}</div>
+                    </React.Fragment>
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            {/* Active Sessions */}
+            {activeSessions.length > 0 && (
+              <div>
+                <div className="text-gray-500 mb-2">## ACTIVE_SESSIONS</div>
+                <div className="space-y-1">
+                  {activeSessions.map((session: any) => (
+                    <div key={session.id} className="grid grid-cols-5 gap-x-8">
+                      <div>session_{sessionHashes.get(session.id) || 'loading'}</div>
+                      <div>{new Date(session.startTime).toLocaleString()}</div>
+                      <div>
+                        {session.actionCount} actions
                       </div>
-                      <div className="text-xs text-gray-500">
-                        Started: {new Date(session.startTime).toLocaleString()}
-                        {session.duration && ` | Duration: ${session.duration}s`}
-                        {` | Actions: ${session.actionCount}`}
+                      <div>
+                        {session.visitorLocation ? 
+                          `${session.visitorLocation.city || 'Unknown'}, ${session.visitorLocation.region || ''}, ${session.visitorLocation.countryCode}` 
+                          : 'Unknown'}
                       </div>
                     </div>
                   ))}
                 </div>
               </div>
             )}
-            
-            <details className="bg-gray-900 p-4 rounded-lg">
-              <summary className="text-green-400 cursor-pointer">## RAW_DATA</summary>
-              <pre className="text-gray-300 mt-2 overflow-auto">
-                {JSON.stringify(stats, null, 2)}
-              </pre>
-            </details>
-          </div>
+          </>
         )}
       </div>
     </Page>

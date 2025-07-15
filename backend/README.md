@@ -1,13 +1,13 @@
 # Backend - Inner Cosmos
 
-Unified backend service running both stats tracking and Python code execution API.
+Unified backend service for the Inner Cosmos personal website.
 
 ## Services
 
-2. **Python Code Execution API** (FastAPI) - Port 8000
-   - Safe Python code execution environment
-   - WebSocket support for real-time execution
-   - Sandboxed with restricted built-ins
+**Stats Tracking API** (FastAPI) - Port 8000
+- Session and activity tracking
+- Real-time statistics via WebSocket
+- Heartbeat monitoring
 
 ## Production Deployment
 
@@ -36,18 +36,10 @@ npm install
 ./scripts/start-prod
 ```
 
-## Security
-
-The Python execution environment is sandboxed with:
-- Restricted built-ins only
-- Safe modules: `math`, `random`, `datetime`, `json`
-- No file system or network access
-- Timeout protection
-
 ## API Endpoints
 
-**Python API (Port 8000)**
+**Stats API (Port 8000)**
 - `GET /` - Health check
-- `POST /execute` - Execute Python code (REST)
-- `WS /ws` - Execute Python code (WebSocket)
+- `POST /api/stats/heartbeat` - Session tracking
+- `WS /live-stats` - Real-time statistics updates
 - `GET /docs` - Interactive API documentation 

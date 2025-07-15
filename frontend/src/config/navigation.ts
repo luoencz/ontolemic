@@ -14,6 +14,7 @@ export const navigationTree: NavNode[] = [
     path: '/projects',
     children: [
       { id: 'cue', label: 'Cue', path: '/projects/cue' },
+      { id: 'blank', label: 'Blank', path: '/projects/blank' },
     ],
   },
   {
@@ -31,32 +32,27 @@ export const backstageTree: NavNode = {
   path: '/backstage',
   children: [
     { id: 'quotes', label: 'Quotes.yaml', path: '/backstage/quotes' },
-    { id: 'stats', label: 'Stats.db', path: '/backstage/stats' },
+    { 
+      id: 'stats', 
+      label: 'Stats.db', 
+      path: '/backstage/stats',
+      children: [
+        { id: 'schema', label: 'Schema.sql', path: '/backstage/schema' },
+      ]
+    },
   ],
 };
 
 // Legacy exports for backward compatibility - will be removed later
-export interface NavItem {
-  path: string;
-  label: string;
-  isDropdown?: boolean;
-}
-
 export interface SubNavItem {
   path: string;
   label: string;
 }
 
-export const navItems: NavItem[] = navigationTree.map(node => ({
-  path: node.path || '',
-  label: node.label,
-  isDropdown: !!node.children,
-}));
-
 export const projectItems: SubNavItem[] = navigationTree
-  .find(n => n.id === 'projects')?.children?.map(c => ({ path: c.path!, label: c.label })) || [];
+  .find(n => n.id === 'projects')?.children?.map((c: NavNode) => ({ path: c.path!, label: c.label })) || [];
 
 export const researchItems: SubNavItem[] = navigationTree
-  .find(n => n.id === 'research')?.children?.map(c => ({ path: c.path!, label: c.label })) || [];
+  .find(n => n.id === 'research')?.children?.map((c: NavNode) => ({ path: c.path!, label: c.label })) || [];
 
-export const backstageItems: SubNavItem[] = backstageTree.children?.map(c => ({ path: c.path!, label: c.label })) || []; 
+export const backstageItems: SubNavItem[] = backstageTree.children?.map((c: NavNode) => ({ path: c.path!, label: c.label })) || []; 

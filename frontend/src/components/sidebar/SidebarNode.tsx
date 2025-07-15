@@ -21,14 +21,9 @@ function SidebarNode({ node, depth, isFocused, focusedPath }: SidebarNodeProps) 
   const hasChildren = node.children && node.children.length > 0;
   const isActive = node.path === location.pathname;
   
-  // Calculate indentation based on depth
   const indentStyle = depth > 0 ? { marginLeft: `${depth * 1}rem` } : {};
   
-  // Check if any child is focused
-  const childFocusIndex = focusedPath.findIndex(id => id === node.id);
-  const focusedChildId = childFocusIndex >= 0 && childFocusIndex < focusedPath.length - 1 
-    ? focusedPath[childFocusIndex + 1] 
-    : null;
+  const focusedId = focusedPath.length > 0 ? focusedPath[focusedPath.length - 1] : null;
 
   const handleClick = (e: React.MouseEvent) => {
     if (node.path && e.currentTarget === e.target) {
@@ -98,7 +93,7 @@ function SidebarNode({ node, depth, isFocused, focusedPath }: SidebarNodeProps) 
               key={child.id}
               node={child}
               depth={depth + 1}
-              isFocused={focusedChildId === child.id}
+              isFocused={focusedId === child.id}
               focusedPath={focusedPath}
             />
           ))}

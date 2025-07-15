@@ -4,13 +4,30 @@ import hashlib
 from datetime import datetime, timedelta
 from fastapi import APIRouter, Request, Response, Depends
 from sqlalchemy.future import select
+from sqlalchemy import text
 from ..schemas import HeartbeatRequest
 from ..models import Visitor, Session
 from ..database import LocalSession
 from ..services import compute_stats
+import httpx
 
 router = APIRouter()
 
+async def get_geo(ip: str) -> dict | None:
+    try:
+        async with httpx.AsyncClient() as client:
+            resp = await client.get(f"https://ipapi.co/{ip}/json/")
+            resp.raise_for_status()
+            data = resp.json()
+            if 'error' in data:
+                return None
+            return {
+                'country_code': data.get('country_code'),
+                'region': data.get('region'),
+                'city': data.get('city'),
+            }
+    except Exception:
+        return None
 
 @router.post("/heartbeat")
 async def heartbeat(
@@ -40,6 +57,11 @@ async def heartbeat(
                 created_at=now, 
                 last_seen_at=now
             )
+            geo = await get_geo(ip)
+            if geo:
+                visitor.country_code = geo['country_code']
+                visitor.region = geo['region']
+                visitor.city = geo['city']
             db.add(visitor)
             await db.commit()
             await db.refresh(visitor)
@@ -55,12 +77,22 @@ async def heartbeat(
                     created_at=now, 
                     last_seen_at=now
                 )
+                geo = await get_geo(ip)
+                if geo:
+                    visitor.country_code = geo['country_code']
+                    visitor.region = geo['region']
+                    visitor.city = geo['city']
                 db.add(visitor)
                 await db.commit()
                 await db.refresh(visitor)
             elif visitor.ip_hash != ip_hash:
                 # IP changed, update
                 visitor.ip_hash = ip_hash
+                geo = await get_geo(ip)
+                if geo:
+                    visitor.country_code = geo['country_code']
+                    visitor.region = geo['region']
+                    visitor.city = geo['city']
             visitor.last_seen_at = now
             await db.commit()
 
@@ -101,3 +133,22 @@ async def heartbeat(
 async def get_stats():
     """Get current statistics."""
     return await compute_stats() 
+
+@router.post("/query")
+async def query_sql(request: Request):
+    """Execute a read-only SQL query (SELECT only) and return results."""
+    data = await request.json()
+    sql = data.get("sql")
+    if not isinstance(sql, str):
+        return {"error": "Invalid SQL parameter"}
+    if not sql.strip().lower().startswith("select"):
+        return {"error": "Only SELECT queries are allowed"}
+    try:
+        async with LocalSession() as db:
+            result = await db.execute(text(sql))
+            rows = result.fetchall()
+            columns = result.keys()
+            results = [dict(zip(columns, row)) for row in rows]
+        return {"results": results}
+    except Exception as e:
+        return {"error": f"Query execution failed: {str(e)}"} 

@@ -11,7 +11,9 @@ const Research = lazy(() => import('./pages/Research'));
 const Backstage = lazy(() => import('./pages/backstage/Backstage'));
 const Quotes = lazy(() => import('./pages/backstage/Quotes'));
 const Stats = lazy(() => import('./pages/backstage/Stats'));
+const Schema = lazy(() => import('./pages/backstage/Schema'));
 const Cue = lazy(() => import('./pages/projects/Cue'));
+const Blank = lazy(() => import('./pages/projects/Blank'));
 
 function App() {
   
@@ -31,11 +33,13 @@ function App() {
           
           {/* Project pages */}
           <Route path="projects/cue" element={<Cue />} />
+          <Route path="projects/blank" element={<Blank />} />
           
           {/* Backstage pages */}
           <Route path="backstage" element={<Backstage />} />
           <Route path="backstage/quotes" element={<Quotes />} />
           <Route path="backstage/stats" element={<Stats />} />
+          <Route path="backstage/schema" element={<Schema />} />
         </Route>
       </Routes>
     </Router>

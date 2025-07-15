@@ -67,6 +67,24 @@ const backstagePages: PageMetadata[] = [
       backgroundColor: '#2a2a2a',
       summary: 'A curated collection of inspiring quotes and thoughts that resonate with me.'
     }
+  },
+  {
+    title: 'Stats.db',
+    path: '/backstage/stats',
+    loader: () => import('../pages/backstage/Stats'),
+    thumbnail: {
+      backgroundColor: '#1a1a1a',
+      summary: 'Real-time visitor statistics and session tracking dashboard.'
+    }
+  },
+  {
+    title: 'Schema.sql',
+    path: '/backstage/schema',
+    loader: () => import('../pages/backstage/Schema'),
+    thumbnail: {
+      backgroundColor: '#2a2a2a',
+      summary: 'Database schema viewer and SQL query interface for analytics data.'
+    }
   }
 ];
 
@@ -80,7 +98,16 @@ const projectPages: PageMetadata[] = [
       image: '/cue/cue-preview.webp',
       summary: 'A generative art project that uses machine learning for sentiment analysis to produce multidimensional vectors.'
     }
-  }
+  },
+  {
+    title: 'Blank',
+    path: '/projects/blank',
+    loader: () => import('../pages/projects/Blank'),
+    thumbnail: {
+      image: '/blank/blank-preview.webp',
+      summary: 'A minimalist Chrome extension that intercepts distracting sites and replaces them with a calming interstitial.'
+    }
+  },
 ];
 
 // Get all searchable pages

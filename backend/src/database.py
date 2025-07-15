@@ -4,7 +4,7 @@ from sqlalchemy.orm import sessionmaker
 from .models import Base
 
 # Create async engine
-engine = create_async_engine("sqlite+aiosqlite:///stats.db", echo=True)
+engine = create_async_engine("sqlite+aiosqlite:///data/stats.db", echo=True)
 
 # Create async session factory
 LocalSession = async_sessionmaker(

@@ -1,44 +1,13 @@
 """WebSocket endpoints for real-time features."""
 from datetime import datetime
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
-from ..services import execute_python_code, compute_stats
+from ..services import compute_stats
 from ..websockets import ConnectionManager
 
 router = APIRouter()
 
 # Create a global connection manager instance
 manager = ConnectionManager()
-
-
-@router.websocket("/ws")
-async def websocket_endpoint(websocket: WebSocket):
-    """WebSocket endpoint for real-time code execution."""
-    await websocket.accept()
-    
-    try:
-        while True:
-            # Receive code from client
-            data = await websocket.receive_json()
-            code = data.get("code", "")
-            
-            if not code:
-                await websocket.send_json({
-                    "success": False,
-                    "error": "No code provided"
-                })
-                continue
-            
-            # Execute and send results
-            result = execute_python_code(code)
-            
-            await websocket.send_json({
-                "success": result["success"],
-                "output": result["output"],
-                "error": result["error"]
-            })
-                
-    except WebSocketDisconnect:
-        pass
 
 
 @router.websocket("/live-stats")
