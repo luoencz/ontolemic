@@ -1,26 +1,12 @@
 import Page from '../components/pages/Page';
-import { PageEmbed } from '../components/pages/PageEmbed';
 
 function Projects() {
   return (
     <Page title="Projects">
       <div className="prose prose-sm">
-        <p className="mb-8">
-          A collection of my work across different domains of software engineering and research.
-        </p>
-
-        <div className="mb-8">
-          <h2 className="text-lg font-normal mb-4">Featured Projects</h2>
-          <PageEmbed to="/projects/cue" size="large" className="mb-4" />
-        </div>
-
-        <div className="text-gray-600 mb-8">
-          <p>More projects coming soon...</p>
-        </div>
-        
-        <div className="mt-8 pt-8 border-t border-gray-200">
+        <div>
           <p className="mb-4">
-            For more projects and source code, visit my GitHub profile:
+            For more projects and source code, visit my GitHub profile.
           </p>
           <a 
             href="https://github.com/the-o-space" 

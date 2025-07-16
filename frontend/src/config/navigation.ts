@@ -23,6 +23,14 @@ export const navigationTree: NavNode[] = [
     path: '/research',
     children: [],
   },
+  {
+    id: 'resources',
+    label: 'Resources',
+    path: '/resources',
+    children: [
+      { id: 'reading', label: 'Reading', path: '/resources/reading' },
+    ],
+  },
   { id: 'contact', label: 'Contact', path: '/contact' },
 ];
 
@@ -42,17 +50,3 @@ export const backstageTree: NavNode = {
     },
   ],
 };
-
-// Legacy exports for backward compatibility - will be removed later
-export interface SubNavItem {
-  path: string;
-  label: string;
-}
-
-export const projectItems: SubNavItem[] = navigationTree
-  .find(n => n.id === 'projects')?.children?.map((c: NavNode) => ({ path: c.path!, label: c.label })) || [];
-
-export const researchItems: SubNavItem[] = navigationTree
-  .find(n => n.id === 'research')?.children?.map((c: NavNode) => ({ path: c.path!, label: c.label })) || [];
-
-export const backstageItems: SubNavItem[] = backstageTree.children?.map((c: NavNode) => ({ path: c.path!, label: c.label })) || []; 

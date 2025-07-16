@@ -12,7 +12,6 @@ import ControlsModal from './modals/ControlsModal';
 import SettingsModal from './modals/SettingsModal';
 import { Search } from './search/Search';
 import PageContentLoader from './common/PageContentLoader';
-import BreathingCurves from './effects/BreathingCurves';
 
 export function Layout() {
   const sidebarVisible = useAppSelector(state => state.ui.sidebarVisible);
@@ -48,8 +47,6 @@ export function Layout() {
 
   return (
     <div className="relative min-h-screen">
-      <BreathingCurves />
-      
       <MobileNav />
       
       <MobileNavigationWrapper keyboardNavigation={keyboardNavigation} />

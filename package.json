@@ -3,19 +3,12 @@
   "version": "1.0.0",
   "description": "Personal website with Python code execution",
   "scripts": {
-    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
-    "dev:frontend": "cd frontend && npm run dev",
-    "dev:backend": "cd backend && uv run python -m uvicorn main:app --reload --port 8000",
-    "prod": "npm run build && concurrently \"npm run prod:backend\" \"npm run prod:frontend\"",
-    "prod:frontend": "cd frontend && npm run preview",
-    "prod:backend": "cd backend && uv run python -m uvicorn main:app --host 127.0.0.1 --port 8000",
-    "install:all": "./setup.sh",
     "build": "cd frontend && npm run build",
-    "preview": "cd frontend && npm run preview",
     "fetch-favicon": "node scripts/fetch-favicon.js"
   },
   "devDependencies": {
-    "concurrently": "^8.2.2"
+    "concurrently": "^8.2.2",
+    "typescript": "^5.8.3"
   },
   "dependencies": {
     "@types/js-yaml": "^4.0.9",

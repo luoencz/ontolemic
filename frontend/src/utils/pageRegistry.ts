@@ -46,6 +46,22 @@ export const pageRegistry: PageMetadata[] = [
       summary: 'Academic papers, technical writing, and research explorations in AI safety and related fields.'
     }
   },
+  {
+    title: 'Resources',
+    path: '/resources',
+    loader: () => import('../pages/resources/Resources'),
+    thumbnail: {
+      summary: 'A curated collection of resources, tools, and reading materials I recommend.'
+    }
+  },
+  {
+    title: 'Reading',
+    path: '/resources/reading',
+    loader: () => import('../pages/resources/Reading'),
+    thumbnail: {
+      summary: 'Suggested reading sources and materials that I love.'
+    }
+  },
 ];
 
 // Backstage pages (added dynamically when unlocked)
