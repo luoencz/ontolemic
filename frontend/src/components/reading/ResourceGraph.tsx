@@ -1,12 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as d3 from 'd3';
-import type { ReadingGraph, ReadingNode } from '../../types/reading';
+import type { ResourceGraph, ResourceNode } from '../../data/resourcesData';
 import { createSimulation } from '../../utils/simulation';
 import { renderGraph } from '../../utils/renderer';
-import './ReadingGraph.css';
+import './ResourceGraph.css';
 
-interface ReadingGraphProps {
-  data: ReadingGraph;
+interface ResourceGraphProps {
+  data: ResourceGraph;
   width?: number;
   height?: number;
 }
@@ -14,13 +14,13 @@ interface ReadingGraphProps {
 const DEFAULT_WIDTH = 800;
 const DEFAULT_HEIGHT = 600;
 
-const ReadingGraphComponent: React.FC<ReadingGraphProps> = ({
+const ResourceGraphComponent: React.FC<ResourceGraphProps> = ({
   data,
   width = DEFAULT_WIDTH,
   height = DEFAULT_HEIGHT
 }) => {
   const svgRef = useRef<SVGSVGElement>(null);
-  const [selectedNode, setSelectedNode] = useState<ReadingNode | null>(null);
+  const [selectedNode, setSelectedNode] = useState<ResourceNode | null>(null);
   const [ready, setReady] = useState(false);
   const [initialized, setInitialized] = useState(false);
 
@@ -41,14 +41,14 @@ const ReadingGraphComponent: React.FC<ReadingGraphProps> = ({
   }, [data, width, height]);
 
   // Get children of selected node
-  const getNodeChildren = (node: ReadingNode): ReadingNode[] => {
+  const getNodeChildren = (node: ResourceNode): ResourceNode[] => {
     const childLinks = data.links.filter(link => 
-      (typeof link.source === 'string' ? link.source : link.source.id) === node.id
+      link.source === node.id && link.type === 'parent'
     );
     return childLinks.map(link => {
-      const targetId = typeof link.target === 'string' ? link.target : link.target.id;
+      const targetId = link.target;
       return data.nodes.find(n => n.id === targetId);
-    }).filter((n): n is ReadingNode => n !== undefined);
+    }).filter((n): n is ResourceNode => n !== undefined);
   };
 
   const selectedNodeChildren = selectedNode ? getNodeChildren(selectedNode) : [];
@@ -101,4 +101,4 @@ const ReadingGraphComponent: React.FC<ReadingGraphProps> = ({
   );
 };
 
-export default ReadingGraphComponent; 
+export default ResourceGraphComponent; 

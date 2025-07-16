@@ -49,17 +49,9 @@ export const pageRegistry: PageMetadata[] = [
   {
     title: 'Resources',
     path: '/resources',
-    loader: () => import('../pages/resources/Resources'),
+    loader: () => import('../pages/Resources'),
     thumbnail: {
       summary: 'A curated collection of resources, tools, and reading materials I recommend.'
-    }
-  },
-  {
-    title: 'Reading',
-    path: '/resources/reading',
-    loader: () => import('../pages/resources/Reading'),
-    thumbnail: {
-      summary: 'Suggested reading sources and materials that I love.'
     }
   },
 ];

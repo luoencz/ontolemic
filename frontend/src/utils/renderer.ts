@@ -1,13 +1,13 @@
 import * as d3 from 'd3';
-import type { ReadingGraph, ReadingNode, ReadingLink } from '../types/reading';
+import type { ResourceGraph, ResourceNode, ResourceLink, RenderedResourceNode } from '../data/resourcesData';
 
 export const renderGraph = (
   svg: d3.Selection<SVGSVGElement, unknown, null, undefined>,
-  _data: ReadingGraph,
-  simulation: d3.Simulation<ReadingNode, undefined>,
+  _data: ResourceGraph,
+  simulation: d3.Simulation<RenderedResourceNode, undefined>,
   _width: number,
   _height: number,
-  setSelectedNode: (node: ReadingNode | null) => void
+  setSelectedNode: (node: ResourceNode | null) => void
 ) => {
   // More saturated pastel colors
   const colorScale = d3.scaleOrdinal<string>()
@@ -43,7 +43,7 @@ export const renderGraph = (
     .style('stroke', 'none');
 
   // Links - thinner and more subtle
-  const linkForce = simulation.force('link') as d3.ForceLink<ReadingNode, ReadingLink>;
+  const linkForce = simulation.force('link') as d3.ForceLink<RenderedResourceNode, ResourceLink>;
   const link = container.append('g')
     .attr('class', 'links')
     .selectAll('line')
@@ -63,7 +63,7 @@ export const renderGraph = (
     .enter()
     .append('g')
     .attr('class', 'node')
-    .call(d3.drag<SVGGElement, ReadingNode>()
+    .call(d3.drag<SVGGElement, RenderedResourceNode>()
       .on('start', (event, d) => dragstarted(event, d, simulation))
       .on('drag', (event, d) => dragged(event, d))
       .on('end', (event, d) => dragended(event, d, simulation))
@@ -108,23 +108,25 @@ export const renderGraph = (
       .attr('y2', (d: any) => (typeof d.target === 'object' ? d.target.y : 0));
 
     node
-      .attr('transform', (d: ReadingNode) => `translate(${d.x},${d.y})`);
+      .attr('transform', (d: RenderedResourceNode) => `translate(${d.x},${d.y})`);
   });
 };
 
-const getNodeRadius = (node: ReadingNode): number => {
+const getNodeRadius = (node: RenderedResourceNode): number => {
   switch (node.type) {
     case 'category': return 12;
     case 'book': return 10;
     case 'paper': return 10;
+    case 'video': return 10;
+    case 'essay': return 10;
     default: return 8;
   }
 };
 
 const dragstarted = (
-  event: d3.D3DragEvent<SVGGElement, ReadingNode, unknown>,
-  d: ReadingNode,
-  simulation: d3.Simulation<ReadingNode, undefined>
+  event: d3.D3DragEvent<SVGGElement, RenderedResourceNode, unknown>,
+  d: RenderedResourceNode,
+  simulation: d3.Simulation<RenderedResourceNode, undefined>
 ) => {
   if (!event.active) simulation.alphaTarget(0.3).restart();
   d.fx = d.x;
@@ -132,8 +134,8 @@ const dragstarted = (
 };
 
 const dragged = (
-  event: d3.D3DragEvent<SVGGElement, ReadingNode, unknown>,
-  d: ReadingNode
+  event: d3.D3DragEvent<SVGGElement, RenderedResourceNode, unknown>,
+  d: RenderedResourceNode
 ) => {
   d.fx = event.x;
   d.fy = event.y;
@@ -143,9 +145,9 @@ const dragged = (
 };
 
 const dragended = (
-  event: d3.D3DragEvent<SVGGElement, ReadingNode, unknown>,
-  d: ReadingNode,
-  simulation: d3.Simulation<ReadingNode, undefined>
+  event: d3.D3DragEvent<SVGGElement, RenderedResourceNode, unknown>,
+  d: RenderedResourceNode,
+  simulation: d3.Simulation<RenderedResourceNode, undefined>
 ) => {
   if (!event.active) simulation.alphaTarget(0);
   d.fx = null;

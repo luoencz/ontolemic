@@ -1,14 +1,14 @@
 import * as d3 from 'd3';
-import type { ReadingGraph, ReadingNode, ReadingLink } from '../types/reading';
+import type { ResourceGraph, ResourceLink, RenderedResourceNode } from '../data/resourcesData';
 
 export const createSimulation = (
-  data: ReadingGraph,
+  data: ResourceGraph,
   width: number,
   height: number
 ) => {
-  // Defensive copy
-  const nodes: ReadingNode[] = data.nodes.map(d => ({ ...d }));
-  const links: ReadingLink[] = data.links.map(d => ({ ...d }));
+  // Defensive copy as RenderedResourceNode
+  const nodes: RenderedResourceNode[] = data.nodes.map(d => ({ ...d }));
+  const links: ResourceLink[] = data.links.map(d => ({ ...d }));
 
   // Set initial positions
   const centerX = width / 2;
@@ -48,19 +48,19 @@ export const createSimulation = (
     }
   });
 
-  const simulation = d3.forceSimulation<ReadingNode>(nodes)
-    .force('link', d3.forceLink<ReadingNode, ReadingLink>(links)
+  const simulation = d3.forceSimulation<RenderedResourceNode>(nodes)
+    .force('link', d3.forceLink<RenderedResourceNode, ResourceLink>(links)
       .id(d => d.id)
       .distance(80) // Reduced for smaller nodes
       .strength(0.5)
     )
-    .force('charge', d3.forceManyBody<ReadingNode>()
+    .force('charge', d3.forceManyBody<RenderedResourceNode>()
       .strength(-200) // Reduced for tighter clustering
       .distanceMin(20)
       .distanceMax(200)
     )
-    .force('center', d3.forceCenter<ReadingNode>(centerX, centerY))
-    .force('collision', d3.forceCollide<ReadingNode>()
+    .force('center', d3.forceCenter<RenderedResourceNode>(centerX, centerY))
+    .force('collision', d3.forceCollide<RenderedResourceNode>()
       .radius(d => getNodeRadius(d) + 10) // Increased padding
       .strength(0.8)
     )
@@ -73,11 +73,13 @@ export const createSimulation = (
   return simulation;
 };
 
-const getNodeRadius = (node: ReadingNode): number => {
+const getNodeRadius = (node: RenderedResourceNode): number => {
   switch (node.type) {
     case 'category': return 12;
     case 'book': return 10;
     case 'paper': return 10;
+    case 'video': return 10;
+    case 'essay': return 10;
     default: return 8;
   }
 }; 

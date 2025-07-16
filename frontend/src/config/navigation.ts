@@ -27,9 +27,7 @@ export const navigationTree: NavNode[] = [
     id: 'resources',
     label: 'Resources',
     path: '/resources',
-    children: [
-      { id: 'reading', label: 'Reading', path: '/resources/reading' },
-    ],
+    children: [],
   },
   { id: 'contact', label: 'Contact', path: '/contact' },
 ];
