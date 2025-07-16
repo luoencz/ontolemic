@@ -51,28 +51,33 @@ export const createSimulation = (
   const simulation = d3.forceSimulation<ReadingNode>(nodes)
     .force('link', d3.forceLink<ReadingNode, ReadingLink>(links)
       .id(d => d.id)
-      .distance(100)
+      .distance(80) // Reduced for smaller nodes
       .strength(0.5)
     )
     .force('charge', d3.forceManyBody<ReadingNode>()
-      .strength(-300)
-      .distanceMin(30)
-      .distanceMax(300)
+      .strength(-200) // Reduced for tighter clustering
+      .distanceMin(20)
+      .distanceMax(200)
     )
     .force('center', d3.forceCenter<ReadingNode>(centerX, centerY))
     .force('collision', d3.forceCollide<ReadingNode>()
-      .radius(d => getNodeRadius(d) + 5)
-      .strength(0.7)
-    );
+      .radius(d => getNodeRadius(d) + 10) // Increased padding
+      .strength(0.8)
+    )
+    .velocityDecay(0.4) // Add damping for smoother animation
+    .alphaDecay(0.02); // Slower decay for smoother settling
+
+  // Run many ticks to ensure stable initial layout
+  simulation.tick(300);
 
   return simulation;
 };
 
 const getNodeRadius = (node: ReadingNode): number => {
   switch (node.type) {
-    case 'category': return 25;
-    case 'book': return 15;
-    case 'paper': return 12;
-    default: return 10;
+    case 'category': return 12;
+    case 'book': return 10;
+    case 'paper': return 10;
+    default: return 8;
   }
 }; 

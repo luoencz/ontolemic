@@ -9,11 +9,14 @@ export const renderGraph = (
   _height: number,
   setSelectedNode: (node: ReadingNode | null) => void
 ) => {
-  const colorScale = d3.scaleOrdinal<string>().domain(['category', 'book', 'paper']).range(d3.schemeCategory10);
+  // More saturated pastel colors
+  const colorScale = d3.scaleOrdinal<string>()
+    .domain(['category', 'book', 'paper'])
+    .range(['#c084fc', '#60a5fa', '#fbbf24']); // Saturated purple, blue, yellow
 
   // Add zoom behavior
   const zoom = d3.zoom<SVGSVGElement, unknown>()
-    .scaleExtent([0.1, 3])
+    .scaleExtent([0.5, 2])
     .on('zoom', (event) => {
       container.attr('transform', event.transform);
     });
@@ -23,22 +26,23 @@ export const renderGraph = (
   // Container for all elements
   const container = svg.append('g');
 
-  // Arrow marker
+  // Arrow marker - smaller and more subtle
   const defs = svg.append('defs');
   defs.append('marker')
     .attr('id', 'arrowhead')
     .attr('viewBox', '-0 -5 10 10')
-    .attr('refX', 13)
+    .attr('refX', 20)
     .attr('refY', 0)
     .attr('orient', 'auto')
-    .attr('markerWidth', 13)
-    .attr('markerHeight', 13)
+    .attr('markerWidth', 8)
+    .attr('markerHeight', 8)
     .append('path')
-    .attr('d', 'M 0,-5 L 10 ,0 L 0,5')
+    .attr('d', 'M 0,-3 L 6 ,0 L 0,3')
     .attr('fill', '#999')
+    .attr('opacity', 0.6)
     .style('stroke', 'none');
 
-  // Links
+  // Links - thinner and more subtle
   const linkForce = simulation.force('link') as d3.ForceLink<ReadingNode, ReadingLink>;
   const link = container.append('g')
     .attr('class', 'links')
@@ -46,9 +50,9 @@ export const renderGraph = (
     .data(linkForce.links())
     .enter()
     .append('line')
-    .attr('stroke', '#999')
-    .attr('stroke-opacity', 0.6)
-    .attr('stroke-width', 2)
+    .attr('stroke', '#e0e0e0')
+    .attr('stroke-opacity', 0.8)
+    .attr('stroke-width', 1)
     .attr('marker-end', 'url(#arrowhead)');
 
   // Nodes
@@ -65,41 +69,36 @@ export const renderGraph = (
       .on('end', (event, d) => dragended(event, d, simulation))
     )
     .on('click', (_event, d) => setSelectedNode(d))
-    .on('mouseover', (event) => {
-      d3.select(event.currentTarget)
-        .select('circle')
-        .attr('stroke', '#000')
-        .attr('stroke-width', 2);
-    })
-    .on('mouseout', (event) => {
-      d3.select(event.currentTarget)
-        .select('circle')
-        .attr('stroke', 'none');
-    });
+    .style('cursor', 'pointer');
 
-  // Circles
+  // Circles - smaller and uniform size
   node.append('circle')
     .attr('r', d => getNodeRadius(d))
     .attr('fill', d => colorScale(d.type))
-    .attr('stroke', 'none');
+    .attr('stroke', '#fff')
+    .attr('stroke-width', 2)
+    .attr('class', 'node-circle');
 
-  // Labels
+  // Labels - smaller and cleaner
   node.append('text')
-    .attr('dy', -20)
+    .attr('dy', -15)
     .attr('text-anchor', 'middle')
-    .style('font-size', '12px')
-    .style('font-weight', 'bold')
-    .style('fill', '#333')
-    .text(d => d.title.length > 20 ? d.title.substring(0, 20) + '...' : d.title);
+    .style('font-size', '11px')
+    .style('font-weight', '500')
+    .style('fill', '#4a5568')
+    .style('user-select', 'none')
+    .text(d => d.title.length > 25 ? d.title.substring(0, 25) + '...' : d.title);
 
-  // Author labels for books
-  node.filter(d => d.type === 'book' && !!d.author)
-    .append('text')
-    .attr('dy', -8)
-    .attr('text-anchor', 'middle')
-    .style('font-size', '10px')
-    .style('fill', '#666')
-    .text(d => d.author || '');
+  // Hover effects
+  node.on('mouseover', function(event) {
+    d3.select(event.currentTarget)
+      .select('circle')
+      .attr('stroke-width', 3);
+  }).on('mouseout', function(event) {
+    d3.select(event.currentTarget)
+      .select('circle')
+      .attr('stroke-width', 2);
+  });
 
   simulation.on('tick', () => {
     link
@@ -111,14 +110,22 @@ export const renderGraph = (
     node
       .attr('transform', (d: ReadingNode) => `translate(${d.x},${d.y})`);
   });
+
+  // Function to update selected node highlighting
+  (svg as any).updateSelectedNode = (selectedId: string | null) => {
+    container.selectAll<SVGCircleElement, ReadingNode>('.node-circle')
+      .attr('stroke', (d) => d.id === selectedId ? '#6366f1' : '#fff')
+      .attr('stroke-width', (d) => d.id === selectedId ? 3 : 2)
+      .style('filter', (d) => d.id === selectedId ? 'drop-shadow(0 0 8px rgba(99, 102, 241, 0.5))' : 'none');
+  };
 };
 
 const getNodeRadius = (node: ReadingNode): number => {
   switch (node.type) {
-    case 'category': return 25;
-    case 'book': return 15;
-    case 'paper': return 12;
-    default: return 10;
+    case 'category': return 12;
+    case 'book': return 10;
+    case 'paper': return 10;
+    default: return 8;
   }
 };
 
@@ -138,6 +145,9 @@ const dragged = (
 ) => {
   d.fx = event.x;
   d.fy = event.y;
+  // Update position immediately for responsive feel
+  d.x = event.x;
+  d.y = event.y;
 };
 
 const dragended = (
