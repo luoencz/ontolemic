@@ -110,14 +110,6 @@ export const renderGraph = (
     node
       .attr('transform', (d: ReadingNode) => `translate(${d.x},${d.y})`);
   });
-
-  // Function to update selected node highlighting
-  (svg as any).updateSelectedNode = (selectedId: string | null) => {
-    container.selectAll<SVGCircleElement, ReadingNode>('.node-circle')
-      .attr('stroke', (d) => d.id === selectedId ? '#6366f1' : '#fff')
-      .attr('stroke-width', (d) => d.id === selectedId ? 3 : 2)
-      .style('filter', (d) => d.id === selectedId ? 'drop-shadow(0 0 8px rgba(99, 102, 241, 0.5))' : 'none');
-  };
 };
 
 const getNodeRadius = (node: ReadingNode): number => {

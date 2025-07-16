@@ -26,39 +26,19 @@ const ReadingGraphComponent: React.FC<ReadingGraphProps> = ({
 
   useEffect(() => {
     if (!svgRef.current || !data.nodes.length) return;
-    
-    // Reset ready state when data changes
     setReady(false);
     setInitialized(false);
-    
     const svg = d3.select(svgRef.current);
     svg.selectAll('*').remove();
-    
     const simulation = createSimulation(data, width, height);
-    
-    // Important: Set ready to true before renderGraph to ensure SVG is visible
     setReady(true);
-    
     renderGraph(svg, data, simulation, width, height, setSelectedNode);
-    
-    // Enable transitions after initial render
     const timer = setTimeout(() => setInitialized(true), 100);
-    
     return () => {
       clearTimeout(timer);
       simulation.stop();
     };
   }, [data, width, height]);
-
-  // Update node highlighting when selection changes
-  useEffect(() => {
-    if (svgRef.current) {
-      const svg = d3.select(svgRef.current);
-      if ((svg as any).updateSelectedNode) {
-        (svg as any).updateSelectedNode(selectedNode?.id || null);
-      }
-    }
-  }, [selectedNode]);
 
   // Get children of selected node
   const getNodeChildren = (node: ReadingNode): ReadingNode[] => {
