@@ -26,6 +26,14 @@ export const pageRegistry: PageMetadata[] = [
     }
   },
   {
+    title: 'Community',
+    path: '/community',
+    loader: () => import('../pages/Community'),
+    thumbnail: {
+      summary: 'Join our community to connect with like-minded individuals interested in AI safety, technology, and creative projects.'
+    }
+  },
+  {
     title: 'Contact',
     path: '/contact',
     loader: () => import('../pages/Contact')
@@ -116,6 +124,27 @@ const projectPages: PageMetadata[] = [
       summary: 'A minimalist Chrome extension that intercepts distracting sites and replaces them with a calming interstitial.'
     }
   },
+  {
+    title: 'Scribe',
+    path: '/projects/scribe',
+    loader: () => import('../pages/projects/Scribe'),
+    thumbnail: {
+      image: '/scribe/scribe-preview.webp',
+      summary: 'Convert Substack and LessWrong posts to EPUB format with one click. Preserve formatting and images while creating portable e-books from your favorite online content.'
+    }
+  },
+];
+
+// Research pages
+const researchPages: PageMetadata[] = [
+  {
+    title: 'Sandbagging Detection',
+    path: '/research/sandbagging-detection',
+    loader: () => import('../pages/research/SandbaggingDetection'),
+    thumbnail: {
+      summary: 'A novel model-agnostic method for detecting sandbagging behavior in AI systems using Gaussian noise injection to reveal hidden capabilities.'
+    }
+  },
 ];
 
 // Get all searchable pages
@@ -123,7 +152,7 @@ export function getSearchablePages(): PageMetadata[] {
   // Check if backstage is unlocked
   const backstageUnlocked = typeof window !== 'undefined' && localStorage.getItem('backstageUnlocked') === 'true';
   
-  const allPages = [...pageRegistry, ...projectPages];
+  const allPages = [...pageRegistry, ...projectPages, ...researchPages];
   
   if (backstageUnlocked) {
     return [...allPages, ...backstagePages];

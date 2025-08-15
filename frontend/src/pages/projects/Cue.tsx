@@ -15,7 +15,7 @@ function Cue() {
           src="/cue/cue-03-lush-forest.webp" 
           alt="Cue art generation preview - abstract emotional visualization"
           className="rounded-lg shadow-lg mb-4 max-w-4xl w-full"
-          aspectRatio="16/9"
+          aspectRatio="3/2"
           placeholderColor="#1f2937"
         />
         <p className="text-sm text-gray-500 italic text-center">
@@ -32,7 +32,7 @@ function Cue() {
           </p>
           
           <p>
-            For the technically inclined: the project is built with React and TypeScript, and uses the Claude AI API for sentiment analysis. To host it yourself, you'll need to acquire the Claude API key and set it in the .env file. My future plans for Cue include expanding the algorithmic complexities to make it truly surprising each time — a unique mirror of your state of mind set out to prompt introspection. The source code is available at <a href="https://github.com/the-o-space/Cue" target="_blank" rel="noopener noreferrer">the-o-space/Cue</a>.
+            For the technically inclined: the project is built with React and TypeScript, and uses the Claude AI API for sentiment analysis. To host it yourself, you'll need to acquire the Claude API key and set it in the .env file. My future plans for Cue include expanding the algorithmic complexities to make it truly surprising each time — a unique mirror of your state of mind set out to prompt introspection. The source code is available at <a href="https://github.com/the-o-space/Cue" target="_blank" rel="noopener noreferrer">GitHub</a>.
           </p>
         </div>
       </div>

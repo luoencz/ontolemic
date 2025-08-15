@@ -11,12 +11,12 @@ export const renderGraph = (
 ) => {
   // More saturated pastel colors
   const colorScale = d3.scaleOrdinal<string>()
-    .domain(['category', 'book', 'paper'])
-    .range(['#c084fc', '#60a5fa', '#fbbf24']); // Saturated purple, blue, yellow
+    .domain(['category', 'book', 'paper', 'video', 'essay'])
+    .range(['#c084fc', '#60a5fa', '#fbbf24', '#34d399', '#f87171']); 
 
-  // Add zoom behavior
+  // Add zoom behavior with better limits
   const zoom = d3.zoom<SVGSVGElement, unknown>()
-    .scaleExtent([0.5, 2])
+    .scaleExtent([0.3, 3]) // Allow zooming out more to see all subgraphs
     .on('zoom', (event) => {
       container.attr('transform', event.transform);
     });
@@ -50,8 +50,8 @@ export const renderGraph = (
     .data(linkForce.links())
     .enter()
     .append('line')
-    .attr('stroke', '#e0e0e0')
-    .attr('stroke-opacity', 0.8)
+    .attr('stroke', '#d1d5db')
+    .attr('stroke-opacity', 0.6)
     .attr('stroke-width', 1)
     .attr('marker-end', 'url(#arrowhead)');
 
@@ -71,7 +71,6 @@ export const renderGraph = (
     .on('click', (_event, d) => setSelectedNode(d))
     .style('cursor', 'pointer');
 
-  // Circles - smaller and uniform size
   node.append('circle')
     .attr('r', d => getNodeRadius(d))
     .attr('fill', d => colorScale(d.type))
@@ -79,7 +78,6 @@ export const renderGraph = (
     .attr('stroke-width', 2)
     .attr('class', 'node-circle');
 
-  // Labels - smaller and cleaner
   node.append('text')
     .attr('dy', -15)
     .attr('text-anchor', 'middle')
@@ -89,7 +87,6 @@ export const renderGraph = (
     .style('user-select', 'none')
     .text(d => d.title.length > 25 ? d.title.substring(0, 25) + '...' : d.title);
 
-  // Hover effects
   node.on('mouseover', function(event) {
     d3.select(event.currentTarget)
       .select('circle')
@@ -139,7 +136,6 @@ const dragged = (
 ) => {
   d.fx = event.x;
   d.fy = event.y;
-  // Update position immediately for responsive feel
   d.x = event.x;
   d.y = event.y;
 };

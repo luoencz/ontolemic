@@ -8,6 +8,7 @@ export interface NavNode {
 export const navigationTree: NavNode[] = [
   { id: 'about', label: 'About', path: '/about' },
   { id: 'blog', label: 'Blog', path: '/blog' },
+  { id: 'community', label: 'Community', path: '/community' },
   {
     id: 'projects',
     label: 'Projects',
@@ -15,13 +16,16 @@ export const navigationTree: NavNode[] = [
     children: [
       { id: 'cue', label: 'Cue', path: '/projects/cue' },
       { id: 'blank', label: 'Blank', path: '/projects/blank' },
+      { id: 'scribe', label: 'Scribe', path: '/projects/scribe' },
     ],
   },
   {
     id: 'research',
     label: 'Research',
     path: '/research',
-    children: [],
+    children: [
+      { id: 'sandbagging-detection', label: 'Sandbagging Detection', path: '/research/sandbagging-detection' },
+    ],
   },
   {
     id: 'resources',

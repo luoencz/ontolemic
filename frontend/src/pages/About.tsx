@@ -25,8 +25,31 @@ function About() {
       </div>
       
       <Gallery layout={aboutPageLayout} />
-      
-      {/* I have been born in 2005, in a small town of Academgorodook, in in 20 something kilometers from Nosovibirsk. When I was only 3, my family moved to Saint Petersburg, where I lived until the february of 2022. There, I studied in a private school and planned to go to university of ITMO. During my high school years, I dabbled in dance, theatre, indie game development, and picked up my life-long passion for TTRPGs and snowboarding. In the meanwhile, I attended Yandex ML program. I also have achieved a 0.03 percentile of the world on EUW server of LoL as a toplaner, and played in a number of tournaments. When I moved to Tbilisi, I applied to university of ISU, where I will have finished my CS bachelor's degree in 2026. In the spring of 2024, I have been hired into Palisade Research. In the summer of 2024, I have attended AISF program. In the fall of 2024, I have attended ARENA and have been accepted to ESPR */}
+
+      <div className="prose prose-sm max-w-none">
+        <p>
+          <p className="mb-4">
+            My other interest include but are not limited to:
+          </p>
+          <ul>
+            <li className="mb-4">
+              <strong>TTRPGs</strong> — I'm designing and running TTRPG games, and have founded and run the largest TTRPG community in Georgia.
+            </li>
+            <li className="mb-4">
+              <strong>Dance</strong> — I have been semi-professionaly dancing since I was 11, with main focus on house dance, but covering contemporary, hip-hop, break and more.
+            </li>
+            <li className="mb-4">
+              <strong>Music</strong> — I have unfortunately never found the time or dedication to learn to play an instrument, but I'm a proud owner of a variety of Hi-Fi audio equipment, and have a wide collection of albums. My main genres are progressive metal, experimental hip-hop and synthesizers music. 
+            </li>
+            <li className="mb-4">
+              <strong>Theatre</strong> — I have been a member of a theatre troupe throughout my school years, and had the honor of performing on most famous stages in modern Russian theatre. I'm a big fan of musicals, and try to visit west end whenever I can.
+            </li>
+            <li className="mb-4">
+              <strong>Snowboarding</strong> — I have been very dedicated to the sport since my young years, and achieved good level of proficiency in carving, freestyling and free riding. 
+            </li>
+          </ul>
+        </p>
+      </div>
     </Page>
   );
 }

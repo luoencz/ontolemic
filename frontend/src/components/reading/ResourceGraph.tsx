@@ -7,40 +7,50 @@ import './ResourceGraph.css';
 
 interface ResourceGraphProps {
   data: ResourceGraph;
-  width?: number;
-  height?: number;
 }
 
-const DEFAULT_WIDTH = 800;
-const DEFAULT_HEIGHT = 600;
-
-const ResourceGraphComponent: React.FC<ResourceGraphProps> = ({
-  data,
-  width = DEFAULT_WIDTH,
-  height = DEFAULT_HEIGHT
-}) => {
+const ResourceGraphComponent: React.FC<ResourceGraphProps> = ({ data }) => {
   const svgRef = useRef<SVGSVGElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const [selectedNode, setSelectedNode] = useState<ResourceNode | null>(null);
   const [ready, setReady] = useState(false);
   const [initialized, setInitialized] = useState(false);
+  const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
+
+  // Handle responsive sizing
+  useEffect(() => {
+    const updateDimensions = () => {
+      if (containerRef.current) {
+        const width = containerRef.current.clientWidth;
+        setDimensions({ width, height: width }); // Square aspect ratio
+      }
+    };
+
+    updateDimensions();
+    const resizeObserver = new ResizeObserver(updateDimensions);
+    if (containerRef.current) {
+      resizeObserver.observe(containerRef.current);
+    }
+
+    return () => resizeObserver.disconnect();
+  }, []);
 
   useEffect(() => {
-    if (!svgRef.current || !data.nodes.length) return;
+    if (!svgRef.current || !data.nodes.length || dimensions.width === 0) return;
     setReady(false);
     setInitialized(false);
     const svg = d3.select(svgRef.current);
     svg.selectAll('*').remove();
-    const simulation = createSimulation(data, width, height);
+    const simulation = createSimulation(data);
     setReady(true);
-    renderGraph(svg, data, simulation, width, height, setSelectedNode);
+    renderGraph(svg, data, simulation, dimensions.width, dimensions.height, setSelectedNode);
     const timer = setTimeout(() => setInitialized(true), 100);
     return () => {
       clearTimeout(timer);
       simulation.stop();
     };
-  }, [data, width, height]);
+  }, [data, dimensions]);
 
-  // Get children of selected node
   const getNodeChildren = (node: ResourceNode): ResourceNode[] => {
     const childLinks = data.links.filter(link => 
       link.source === node.id && link.type === 'parent'
@@ -55,11 +65,15 @@ const ResourceGraphComponent: React.FC<ResourceGraphProps> = ({
 
   return (
     <div className="reading-graph-wrapper">
-      <div className={`reading-graph-container ${initialized ? 'initialized' : ''}`}>
-        <svg 
-          ref={svgRef} 
-          width={width} 
-          height={height} 
+      <div 
+        ref={containerRef}
+        className={`reading-graph-container ${initialized ? 'initialized' : ''}`}
+      >
+        <svg
+          ref={svgRef}
+          width={dimensions.width}
+          height={dimensions.height}
+          viewBox={`${-dimensions.width / 2} ${-dimensions.height / 2} ${dimensions.width} ${dimensions.height}`}
           style={{ visibility: ready ? 'visible' : 'hidden' }}
         />
       </div>

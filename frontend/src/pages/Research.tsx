@@ -4,12 +4,18 @@ function Research() {
   return (
     <Page title="Research">
       <div className="prose prose-sm">
-        <p className="mb-8">
-          Academic papers, technical writing, and research explorations in AI safety and related fields.
-        </p>
-
-        <div className="text-gray-600">
-          <p>Research papers and publications coming soon...</p>
+        <div>
+          <p className="mb-4">
+            Academic papers, technical writing, and research explorations in AI safety and related fields.
+          </p>
+          <a 
+            href="https://scholar.google.com/citations?user=3liDI08AAAAJ&hl=en" 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            className="inline-flex items-center"
+          >
+            Google Scholar
+          </a>
         </div>
       </div>
     </Page>
