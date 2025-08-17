@@ -1,14 +1,16 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { Provider } from 'react-redux'
+import { RouterProvider } from 'react-router-dom'
 import { store } from './store'
-import App from './App.tsx'
+import { router } from './router'
+import FullPageLoader from './components/common/FullPageLoader'
 import './index.css'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <Provider store={store}>
-      <App />
+      <RouterProvider router={router} fallbackElement={<FullPageLoader />} />
     </Provider>
   </React.StrictMode>,
 ) 

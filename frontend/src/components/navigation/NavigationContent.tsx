@@ -3,7 +3,7 @@ import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { toggleSidebar, toggleSound, setShowSettings, setShowControls } from '../../store/slices/uiSlice';
 import { useRandomQuote } from '../../hooks/useRandomQuote';
 import SidebarNode from '../sidebar/SidebarNode';
-import { navigationTree, backstageTree } from '../../config/navigation';
+import { navigationTree, backstageTree } from '../../config/siteMap';
 import { Icons } from '../../config/icons';
 
 interface NavigationContentProps {

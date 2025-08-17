@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { toggleSidebar, toggleSound, setShowControls, setShowSettings, closeAllModals } from '../store/slices/uiSlice';
 import { setNodeExpanded, toggleNode, setFocusArea } from '../store/slices/navigationSlice';
-import { navigationTree, backstageTree, NavNode } from '../config/navigation';
+import { navigationTree, backstageTree, NavNode } from '../config/siteMap';
 
 interface FlatNode {
   node: NavNode;

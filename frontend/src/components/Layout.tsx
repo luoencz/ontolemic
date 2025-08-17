@@ -1,5 +1,5 @@
-import { useState, useEffect, Suspense } from 'react';
-import { Outlet, useLocation } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Outlet, useLocation, ScrollRestoration } from 'react-router-dom';
 import { useAppSelector } from '../store/hooks';
 import { useKeyboardNavigation } from '../hooks/useKeyboardNavigation';
 import { useSearchHighlight } from '../hooks/useSearchHighlight';
@@ -11,7 +11,6 @@ import MobileNavigationWrapper from './navigation/MobileNavigationWrapper';
 import ControlsModal from './modals/ControlsModal';
 import SettingsModal from './modals/SettingsModal';
 import { Search } from './search/Search';
-import PageContentLoader from './common/PageContentLoader';
 
 export function Layout() {
   const sidebarVisible = useAppSelector(state => state.ui.sidebarVisible);
@@ -58,9 +57,7 @@ export function Layout() {
       <main className={`transition-all duration-300 ease-in-out ${
         sidebarVisible ? 'lg:ml-64' : 'lg:ml-0'
       } p-4 lg:p-8 pt-20 lg:pt-8 min-h-screen`}>
-        <Suspense fallback={<PageContentLoader />}>
-          <Outlet />
-        </Suspense>
+        <Outlet />
       </main>
 
       <div className="hidden lg:block">
@@ -71,6 +68,7 @@ export function Layout() {
       
       <ControlsModal />
       <SettingsModal />
+      <ScrollRestoration />
     </div>
   );
 } 
