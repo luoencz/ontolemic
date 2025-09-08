@@ -1,9 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { searchPages, SearchResult } from '../../utils/searchIndex';
-import { getSearchablePages } from '../../utils/pageRegistry';
-import { useDispatch } from 'react-redux';
-import { unlockBackstage } from '../../store/slices/uiSlice';
+import { getSearchablePages } from '../../utils/searchIndex';
+import { } from 'react-redux';
 
 interface SearchProps {
   isOpen: boolean;
@@ -20,7 +19,7 @@ export function Search({ isOpen, onClose }: SearchProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const resultsRefs = useRef<(HTMLDivElement | null)[]>([]);
   const navigate = useNavigate();
-  const dispatch = useDispatch();
+  
   const scrambleInterval = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
@@ -36,38 +35,6 @@ export function Search({ isOpen, onClose }: SearchProps) {
 
   useEffect(() => {
     if (query.length >= 2) {
-      // Easter egg: Check for "Backstage" input
-      if (query.toLowerCase() === 'backstage') {
-        setIsScrambling(true);
-        setResults([{
-          pagePath: '/backstage-unlock',
-          pageTitle: '???',
-          text: '???',
-          context: '???',
-          index: 0
-        }]);
-        setSelectedIndex(0);
-        
-        // Start scrambling effect
-        const symbols = '!@#$%^&*()_+-={}[]|:;<>?,./~`';
-        let scrambleCount = 0;
-        
-        scrambleInterval.current = setInterval(() => {
-          const scrambled = query.split('').map(() => 
-            symbols[Math.floor(Math.random() * symbols.length)]
-          ).join('');
-          setDisplayQuery(scrambled);
-          
-          scrambleCount++;
-          if (scrambleCount > 20) {
-            clearInterval(scrambleInterval.current!);
-            setDisplayQuery('§̸̈́ͅẗ̴̰́ä̸͇́ĝ̶̱ë̵͇́');
-          }
-        }, 50);
-        
-        return;
-      }
-      
       setIsScrambling(false);
       if (scrambleInterval.current) {
         clearInterval(scrambleInterval.current);
@@ -152,18 +119,6 @@ export function Search({ isOpen, onClose }: SearchProps) {
   };
 
   const navigateToResult = (result: SearchResult) => {
-    if (result.pagePath === '/backstage-unlock') {
-      // Unlock backstage
-      dispatch(unlockBackstage());
-      localStorage.setItem('backstageUnlocked', 'true');
-      handleClose();
-      // Show a subtle indication that something happened
-      setTimeout(() => {
-        navigate('/backstage/quotes');
-      }, 100);
-      return;
-    }
-    
     sessionStorage.setItem('searchTerm', query);
     sessionStorage.setItem('searchIndex', result.index.toString());
     navigate(result.pagePath);
@@ -233,24 +188,15 @@ export function Search({ isOpen, onClose }: SearchProps) {
                 {index === selectedIndex && (
                   <div className="absolute inset-y-0 left-0 w-1 bg-black" />
                 )}
-                <div className={`font-medium text-sm ${
-                  result.pagePath === '/backstage-unlock' ? 'text-gray-800' : 'text-gray-500'
-                } mb-1`}>
+                <div className={`font-medium text-sm text-gray-500 mb-1`}>
                   {result.pageTitle}
                 </div>
-                <div className={`text-sm leading-relaxed ${
-                  result.pagePath === '/backstage-unlock' ? 'text-gray-600 font-mono' : 'text-gray-700'
-                }`}>
-                  {result.pagePath === '/backstage-unlock' 
-                    ? result.context 
-                    : (
-                      <>
-                        <span>...</span>
-                        {highlightMatch(result.context, query)}
-                        <span>...</span>
-                      </>
-                    )
-                  }
+                <div className={`text-sm leading-relaxed text-gray-700`}>
+                  <>
+                    <span>...</span>
+                    {highlightMatch(result.context, query)}
+                    <span>...</span>
+                  </>
                 </div>
               </div>
             ))}

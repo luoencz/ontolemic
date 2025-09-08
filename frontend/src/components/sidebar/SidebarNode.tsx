@@ -1,7 +1,7 @@
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { toggleNode } from '../../store/slices/navigationSlice';
-import { NavNode } from '../../config/siteMap';
+import type { NavNode } from '../../types/navigation';
 import { Icons } from '../../config/icons';
 
 interface SidebarNodeProps {

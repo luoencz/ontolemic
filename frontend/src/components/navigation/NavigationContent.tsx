@@ -3,7 +3,7 @@ import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { toggleSidebar, toggleSound, setShowSettings, setShowControls } from '../../store/slices/uiSlice';
 import { useRandomQuote } from '../../hooks/useRandomQuote';
 import SidebarNode from '../sidebar/SidebarNode';
-import { navigationTree, backstageTree } from '../../config/siteMap';
+import { mainNavigationTree, backstageTree } from '../../utils/buildNavigation';
 import { Icons } from '../../config/icons';
 
 interface NavigationContentProps {
@@ -27,7 +27,7 @@ interface NavigationContentProps {
 
 function NavigationContent({ keyboardNavigation }: NavigationContentProps) {
   const dispatch = useAppDispatch();
-  const { soundEnabled, backstageUnlocked } = useAppSelector(state => state.ui);
+  const { soundEnabled } = useAppSelector(state => state.ui);
   const { quote } = useRandomQuote();
   
   // Destructure the keyboard navigation state
@@ -51,7 +51,7 @@ function NavigationContent({ keyboardNavigation }: NavigationContentProps) {
       </p>
 
       <nav className="space-y-2 flex-1 overflow-y-auto">
-        {navigationTree.map((node) => {
+        {mainNavigationTree.map((node) => {
           const nodeIndex = visibleNodes.findIndex(n => n.node.id === node.id && n.depth === 0);
           return (
             <SidebarNode
@@ -64,18 +64,14 @@ function NavigationContent({ keyboardNavigation }: NavigationContentProps) {
           );
         })}
         
-        {/* Backstage section - only visible when unlocked */}
-        {backstageUnlocked && (
-          <>
-            <div className="h-8" /> {/* Wider gap for separation */}
-            <SidebarNode
-              node={backstageTree}
-              depth={0}
-              isFocused={sidebarFocusIndex === visibleNodes.findIndex(n => n.node.id === 'backstage' && n.depth === 0)}
-              focusedPath={focusedPath}
-            />
-          </>
-        )}
+        {/* Backstage section - always visible */}
+        <div className="h-8" />
+        <SidebarNode
+          node={backstageTree}
+          depth={0}
+          isFocused={sidebarFocusIndex === visibleNodes.findIndex(n => n.node.id === 'backstage' && n.depth === 0)}
+          focusedPath={focusedPath}
+        />
       </nav>
 
       {/* Bottom buttons */}

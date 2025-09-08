@@ -1,6 +1,6 @@
 import { createBrowserRouter } from 'react-router-dom';
 import { Layout } from '../components/Layout';
-import { buildChildRoutes } from '../config/siteMap';
+import { buildChildRoutes } from '../utils/buildNavigation';
 
 export const router = createBrowserRouter([
   {

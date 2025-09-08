@@ -3,7 +3,8 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { toggleSidebar, toggleSound, setShowControls, setShowSettings, closeAllModals } from '../store/slices/uiSlice';
 import { setNodeExpanded, toggleNode, setFocusArea } from '../store/slices/navigationSlice';
-import { navigationTree, backstageTree, NavNode } from '../config/siteMap';
+import { mainNavigationTree, backstageTree } from '../utils/buildNavigation';
+import type { NavNode } from '../types/navigation';
 
 interface FlatNode {
   node: NavNode;
@@ -27,7 +28,6 @@ export function useKeyboardNavigation() {
   // UI state
   const showControls = useAppSelector(state => state.ui.showControls);
   const showSettings = useAppSelector(state => state.ui.showSettings);
-  const backstageUnlocked = useAppSelector(state => state.ui.backstageUnlocked);
   const sidebarVisible = useAppSelector(state => state.ui.sidebarVisible);
   
   // Navigation state
@@ -47,12 +47,10 @@ export function useKeyboardNavigation() {
 
   // Build full navigation tree including backstage if unlocked
   const fullTree = useMemo(() => {
-    const tree = [...navigationTree];
-    if (backstageUnlocked) {
-      tree.push(backstageTree);
-    }
+    const tree = [...mainNavigationTree];
+    tree.push(backstageTree);
     return tree;
-  }, [backstageUnlocked]);
+  }, []);
 
   // Flatten the tree to get all visible nodes
   const flattenTree = useCallback((nodes: NavNode[], depth = 0, parentPath: string[] = []): FlatNode[] => {

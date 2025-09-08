@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactDOMServer from 'react-dom/server';
-import { PageInfo } from './pageRegistry';
+import type { SiteNode } from '../types/navigation';
+import { mainSiteMap, backstageRoot } from '../data/navigation-graph';
 
 export interface SearchResult {
   pageTitle: string;
@@ -10,12 +11,49 @@ export interface SearchResult {
   index: number;
 }
 
-// Extract text content from a React component
+export interface PageInfo {
+  title: string;
+  path: string;
+  loader: () => Promise<any>;
+}
+
+function joinPaths(parent: string, segment?: string): string {
+  if (!segment) return parent;
+  return `${parent.replace(/\/$/, '')}/${segment}`;
+}
+
+function collectPages(nodes: SiteNode[], basePath: string, acc: PageInfo[]): void {
+  for (const node of nodes) {
+    const fullPath = joinPaths(basePath, node.segment);
+    const hasChildren = Array.isArray(node.children) && node.children.length > 0;
+    const hasPage = typeof node.lazyImport === 'function';
+
+    if (node.segment) {
+      if (hasChildren) {
+        collectPages(node.children!, fullPath, acc);
+      }
+      if (hasPage) {
+        // Index page at this route
+        acc.push({ title: node.label, path: fullPath, loader: node.lazyImport! });
+      }
+    } else if (hasPage) {
+      // Index page at current base path
+      acc.push({ title: node.label, path: basePath, loader: node.lazyImport! });
+    }
+  }
+}
+
+export function getSearchablePages(): PageInfo[] {
+  const pages: PageInfo[] = [];
+  collectPages(mainSiteMap, '/', pages);
+  collectPages([backstageRoot], '/', pages);
+  return pages;
+}
+
 export function extractTextFromComponent(component: React.ComponentType): string {
   try {
     const element = React.createElement(component);
     const html = ReactDOMServer.renderToStaticMarkup(element);
-    // Remove HTML tags and normalize whitespace
     return html
       .replace(/<[^>]*>/g, ' ')
       .replace(/\s+/g, ' ')
