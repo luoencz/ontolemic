@@ -1,0 +1,58 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: 'Neue Haas Unica', sans-serif;
+  --font-serif: 'Warnock Pro', serif;
+  --font-mono: 'Space Mono', monospace;
+
+  --primary-color: #37AFDE;
+  --secondary-color: #FB5347;
+  --accent-color: #F1C232;
+  --text-color: #F5F5F5;
+  --background-color: #010b19;
+  --success-color: #2AB16D;
+  --warning-color: #ff9800;
+  --error-color: #FB5347;
+  
+  --spacing-unit: 8px;
+}
+
+body {
+  background-color: var(--background-color);
+  color: var(--text-color);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-serif);
+  font-weight: 600; /* Semibold */
+}
+
+h1 {
+  font-size: 2.5rem;
+}
+
+h2 {
+  font-size: 2rem;
+}
+
+h3 {
+  font-size: 1.75rem;
+}
+
+p {
+  line-height: 1.6;
+}
+
+a {
+  color: var(--primary-color);
+  text-decoration: none;
+  transition: color 0.2s ease-in-out;
+}
+
+a:hover {
+  color: var(--secondary-color);
+  text-decoration: underline;
+}

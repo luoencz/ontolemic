@@ -49,7 +49,7 @@
 **/.vite/
 
 # Python
-**/__pycache__/
+**/__сдe__/
 **/*.py[cod]
 **/*$py.class
 **/*.so

@@ -1,0 +1,61 @@
+@import "tailwindcss";
+/* Warnock Pro */
+@font-face {
+  font-family: 'Warnock Pro';
+  src: url('/fonts/warnock-pro/WarnockPro-Regular.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Warnock Pro';
+  src: url('/fonts/warnock-pro/WarnockPro-It.otf') format('opentype');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Warnock Pro';
+  src: url('/fonts/warnock-pro/WarnockPro-Semibold.otf') format('opentype');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Warnock Pro';
+  src: url('/fonts/warnock-pro/WarnockPro-SemiboldIt.otf') format('opentype');
+  font-weight: 600;
+  font-style: italic;
+  font-display: swap;
+}
+
+:root {
+  --font-sans: 'Neue Haas Unica', sans-serif;
+  --font-serif: 'Warnock Pro', serif;
+  --font-mono: 'Space Mono', monospace;
+
+  --foreground: #ffffff;
+  --background-start: #262834;
+  --background-end: #181924;
+
+  --primary-color: #37AFDE;
+  --secondary-color: #FB5347;
+  --accent-color: #F1C232;
+
+  --text-color: #F5F5F5;
+  --background-color: #010b19;
+
+  --success-color: #2AB16D;
+  --warning-color: #ff9800;
+  --error-color: #FB5347;
+
+  --spacing-unit: 8px;
+}
+
+.castle {
+  background-color: #2b3f47;
+}
+
