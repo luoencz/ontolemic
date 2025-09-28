@@ -1,4 +1,3 @@
-import { Comment } from "@/components/layout/comment";
 import styles from "./page.module.css";
 
 export default function Home() {
@@ -18,7 +17,7 @@ export default function Home() {
             starting with theatre and modern dance and just continuing with
             alignment research and rationality. Ontolemic is my travel journal —
             featuring messy scribbles, descriptions of my discoveries, and
-guesses about realms yet uncharted. Come aboard.
+            guesses about realms yet uncharted. Come aboard.
           </p>
           <hr className={styles.hr} />
           <div className={styles.nav}>
