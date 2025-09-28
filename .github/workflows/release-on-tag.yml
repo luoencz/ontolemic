@@ -1,25 +1,17 @@
-name: Release on tag (build + attach asset)
+name: Build on push
 
 on:
   push:
-    tags:
-      - 'v*'
-
-permissions:
-  contents: write
-
-concurrency:
-  group: release-${{ github.ref }}
-  cancel-in-progress: false
 
 jobs:
-  build-and-release:
+  build:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -28,45 +20,8 @@ jobs:
           cache: npm
           cache-dependency-path: frontend/package-lock.json
 
-      - name: Package frontend
-        run: |
-          bash ./scripts/package-frontend.sh
+      - name: Install dependencies
+        run: npm ci
 
-      - name: Find packaged artifact
-        id: artifact
-        run: |
-          set -euo pipefail
-          ARTIFACT_PATH=$(ls -t artifacts/ontolemic-frontend-*.tar.gz | head -n 1)
-          echo "path=${ARTIFACT_PATH}" >> "$GITHUB_OUTPUT"
-          echo "basename=$(basename "${ARTIFACT_PATH}")" >> "$GITHUB_OUTPUT"
-
-      - name: Upload workflow artifact (optional)
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ steps.artifact.outputs.basename }}
-          path: ${{ steps.artifact.outputs.path }}
-
-      # Create a DRAFT release first, upload asset, then PUBLISH to ensure
-      # any release webhooks fire only AFTER asset is available
-      - name: Create draft release and attach asset
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAG_NAME: ${{ github.ref_name }}
-        run: |
-          set -euo pipefail
-          # Try to create a draft release; if it exists, proceed to upload
-          gh release create "$TAG_NAME" "${{ steps.artifact.outputs.path }}" \
-            --draft \
-            --title "$TAG_NAME" \
-            --notes "Automated release for $TAG_NAME" \
-          || gh release upload "$TAG_NAME" "${{ steps.artifact.outputs.path }}" --clobber
-
-      - name: Publish release
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAG_NAME: ${{ github.ref_name }}
-        run: |
-          set -euo pipefail
-          gh release edit "$TAG_NAME" --draft=false
-
-
+      - name: Build
+        run: npm run build
