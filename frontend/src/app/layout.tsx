@@ -1,11 +1,10 @@
 import type { Metadata } from "next";
 
-import AppClientLayout from "./client-layout";
 import "../styles/theme.css";
 
 export const metadata: Metadata = {
-  title: "Inner Cosmos",
-  description: "Inner Cosmos by Theo Ryzhenkov",
+  title: "Ontolemic",
+  description: "Ontolemic by Theo Ryzhenkov",
 };
 
 export default function RootLayout({
@@ -16,8 +15,8 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <AppClientLayout>{children}</AppClientLayout>
-      </body>
+        {children} 
+      </body> 
     </html>
   );
 }

@@ -33,23 +33,14 @@ h6 {
 
 p {
     @apply font-sans font-light;
-    @apply text-base;
 }
 
 a {
     @apply font-sans font-light;
-    @apply text-base;
-
-    color: var(--primary-color);
-    text-decoration: none;
-    transition: color 0.2s ease-in-out;
 }
 
 a:hover {
-    @apply font-sans font-normal;
-    @apply text-base;
+    @apply font-sans font-light;
 
-    color: var(--secondary-color);
     text-decoration: underline;
-    transition: color 0.2s ease-in-out;
 }

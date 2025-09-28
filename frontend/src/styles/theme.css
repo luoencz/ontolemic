@@ -10,14 +10,18 @@
   --primary-color: #37AFDE;
   --secondary-color: #FB5347;
   --accent-color: #F1C232;
-  --text-color: #FFF8E7;
-  --background-color: #010b19;
+  --space-latte: #FFF8E7;
+  --deep-space: #010b19;
   --success-color: #2AB16D;
   --warning-color: #ff9800;
   --error-color: #FB5347;
+  --comment-color: #373f4b;
 
-  --space-latte: #FFF8E7;
-  --deep-space: #010b19;
+  --red-advisor: #FB5347;
+  --blue-advisor: #37AFDE;
+  --green-advisor: #2AB16D;
+  --yellow-advisor: #F1C232;
+  --purple-advisor: #9B59B6;
   
   --spacing-unit: 8px;
 
@@ -91,19 +95,9 @@
 }
 
 body {
-  background-color: var(--background-color);
-  color: var(--text-color);
+  background-color: var(--deep-space);
+  color: var(--space-latte);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-}
-
-a {
-  color: var(--primary-color);
-  text-decoration: none;
-  transition: color 0.2s ease-in-out;
-}
-
-a:hover {
-  color: var(--secondary-color);
-  text-decoration: underline;
+  font-size: 1.2rem;
 }

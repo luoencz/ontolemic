@@ -1,11 +1,18 @@
-import type { NextConfig } from "next";
+import path from 'path';
 
-const nextConfig: NextConfig = {
-  /* config options here */
+const nextConfig = {
   turbopack: {
-    // The project root directory, which is the directory that contains the `node_modules` directory.
-    // This is an absolute path.
-    root: __dirname,
+    root: path.join(__dirname),
+    rules: {
+      '*.svg?url': {
+        loaders: ['file-loader'],
+        as: '*.js',
+      },
+      '*.svg': {
+        loaders: ['@svgr/webpack'],
+        as: '*.js',
+      },
+    },
   },
 };
 
