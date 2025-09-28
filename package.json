@@ -1,4 +1,7 @@
 {
+  "scripts": {
+    "package": "bash ./scripts/package-frontend.sh"
+  },
   "devDependencies": {
     "@testing-library/jest-dom": "^6.8.0",
     "@testing-library/react": "^16.3.0",

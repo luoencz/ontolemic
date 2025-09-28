@@ -70,3 +70,6 @@ backend/data/*.db-wal
 ops/nginx/*.conf
 ops/systemd/*.service
 ops/systemd/.env.systemd
+
+# Release artifacts
+/artifacts/
