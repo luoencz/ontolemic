@@ -11,14 +11,8 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Install dependencies
-        run: cd frontend && npm ci
-
       - name: Build Next.js
         run: cd frontend && npm run build
-
-      - name: Debug workspace
-        run: ls -al frontend
 
       - name: Copy files over SSH
         uses: appleboy/scp-action@v0.1.7
@@ -26,10 +20,7 @@ jobs:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: |
-            frontend/.next
-            frontend/package.json
-            frontend/public
+          source: frontend/.next
           target: /opt/sites/ontolemic/frontend
       
       - name: Install dependencies over SSH
