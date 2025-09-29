@@ -23,7 +23,7 @@ jobs:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: frontend/.next
+          source: frontend/.next frontend/package.json frontend/public
           target: /opt/sites/ontolemic/frontend
       
       - name: Install dependencies over SSH
