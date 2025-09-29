@@ -17,15 +17,33 @@ jobs:
       - name: Build Next.js
         run: cd frontend && npm run build
 
-      - name: Copy files over SSH
+      - name: Copy .next over SSH
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: frontend/.next frontend/package.json frontend/public
-          target: /opt/sites/ontolemic/frontend
-      
+          source: frontend/.next
+          target: /opt/sites/ontolemic
+
+      - name: Copy package.json over SSH
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: frontend/package.json
+          target: /opt/sites/ontolemic
+
+      - name: Copy public over SSH
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: frontend/public
+          target: /opt/sites/ontolemic
+
       - name: Install dependencies over SSH
         uses: appleboy/ssh-action@v0.1.10
         with:
