@@ -26,8 +26,21 @@ jobs:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: ".next,package.json,public,node_modules"
-          target: /opt/sites/ontolemic/frontend/
+          source: |
+            frontend/.next
+            frontend/package.json
+            frontend/public
+          target: /opt/sites/ontolemic/frontend
+      
+      - name: Install dependencies over SSH
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /opt/sites/ontolemic/frontend
+            npm ci --omit=dev
 
       - name: SSH and restart PM2 as www-data
         uses: appleboy/ssh-action@v0.1.10
@@ -36,5 +49,5 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            cd /opt/sites/ontolemic/frontend/
+            cd /opt/sites/ontolemic/frontend
             sudo -u www-data pm2 restart ontolemic-frontend
