@@ -73,3 +73,6 @@ ops/systemd/.env.systemd
 
 # Release artifacts
 /artifacts/
+
+# Frontend bundle
+ontolemic-frontend.tar.gz
