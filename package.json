@@ -1,5 +1,0 @@
-{
-    "scripts": {
-    "package": "bash ./scripts/package-frontend.sh"
-  }
-}
