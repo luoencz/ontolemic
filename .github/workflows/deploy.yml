@@ -7,18 +7,18 @@ on:
 jobs:
   deploy-frontend:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: frontend
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Install dependencies
-        run: npm ci
+        run: cd frontend && npm ci
 
       - name: Build Next.js
-        run: npm run build
+        run: cd frontend && npm run build
+
+      - name: Debug workspace
+        run: ls -al frontend
 
       - name: Copy files over SSH
         uses: appleboy/scp-action@v0.1.7
