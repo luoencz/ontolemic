@@ -16,26 +16,26 @@ export default async function ProjectPage({
   }
 
   return (
-    <main className={styles.main}>
+    <main className="page-main">
       <div className={styles.content}>
         <Link href="/project" className={styles.backLink}>
           ← Back to Projects
         </Link>
         <div className={styles.project}>
-          <div className={styles.imageContainer}>
+          <div className="image-container-tall">
             <img
               src={project.image}
               alt={project.title}
-              className={styles.image}
+              className="image-cover"
             />
           </div>
           <div className={styles.projectContent}>
-            <h1 className={styles.title}>{project.title}</h1>
-            <p className={styles.description}>{project.description}</p>
+            <h1 style={{ fontSize: 'var(--font-size-3xl)', fontWeight: 400, margin: 0 }}>{project.title}</h1>
+            <p style={{ fontSize: 'var(--font-size-lg)', lineHeight: 'var(--line-height-relaxed)', opacity: 'var(--opacity-muted)' }}>{project.description}</p>
             {project.tags.length > 0 && (
-              <div className={styles.tags}>
+              <div className="tags-container" style={{ marginTop: 'var(--spacing-sm)' }}>
                 {project.tags.map((tag) => (
-                  <span key={tag} className={styles.tag}>
+                  <span key={tag} className="tag">
                     {tag}
                   </span>
                 ))}

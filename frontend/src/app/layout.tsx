@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 
-import { neueHaasUnica, warnockPro } from "../styles/fonts";
+import { neueHaasUnica, warnockPro } from "../styles/fonts/fonts";
 import "../styles/theme.css";
+import Navbar from "@/components/layout/navbar";
 
 export const metadata: Metadata = {
   title: "Ontolemic",
@@ -19,6 +20,7 @@ export default function RootLayout({
         <link rel="preload" as="image" href="/images/svgs/analemma.svg" />
       </head>
       <body>
+        <Navbar />
         {children} 
       </body> 
     </html>

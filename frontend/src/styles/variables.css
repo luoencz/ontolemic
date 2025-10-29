@@ -1,0 +1,17 @@
+@import "./base.css";
+@import "tailwindcss";
+
+@theme {
+  --font-sans: var(--font-neue-haas-unica), sans-serif;
+  --font-serif: var(--font-warnock-pro), serif;
+  --font-mono: 'Space Mono', monospace;
+
+  --color-space-latte: #FFF8E7;
+  --color-deep-space: #010b19;
+  --color-amber-special: #F1C232;
+  --color-ruby-special: #FB5347;
+  --color-amethyst-special: #9B78FF;
+  --color-emerald-special: #2AB16D;
+  --color-saphire-special: #37AFDE;
+}
+

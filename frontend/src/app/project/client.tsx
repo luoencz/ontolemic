@@ -45,8 +45,8 @@ export default function ProjectsClient({ projects, allTags }: ProjectsClientProp
             <button
               key={tag}
               onClick={() => toggleTag(tag)}
-              className={`${styles.filterButton} ${
-                selectedTags.includes(tag) ? styles.filterButtonActive : ""
+              className={`button-filter ${
+                selectedTags.includes(tag) ? "button-filter-active" : ""
               }`}
             >
               {tag}
@@ -56,7 +56,7 @@ export default function ProjectsClient({ projects, allTags }: ProjectsClientProp
         {selectedTags.length > 0 && (
           <button
             onClick={clearFilters}
-            className={styles.clearButton}
+            className="button-clear"
           >
             Clear filters
           </button>
@@ -71,22 +71,22 @@ export default function ProjectsClient({ projects, allTags }: ProjectsClientProp
             <Link
               key={project.slug}
               href={`/project/${project.slug}`}
-              className={`${styles.card} ${isActive ? styles.cardActive : ""}`}
+              className={`card ${isActive ? styles.cardActive : ""}`}
             >
-              <div className={styles.imageContainer}>
+              <div className="image-container">
                 <img
                   src={project.image}
                   alt={project.title}
-                  className={styles.image}
+                  className="image-cover"
                 />
               </div>
-              <div className={styles.cardContent}>
-                <h2 className={styles.cardTitle}>{project.title}</h2>
-                <p className={styles.cardDescription}>{project.description}</p>
+              <div className="card-content">
+                <h2 className="card-title">{project.title}</h2>
+                <p className="card-description">{project.description}</p>
                 {project.tags.length > 0 && (
-                  <div className={styles.tags}>
+                  <div className="tags-container">
                     {project.tags.map((tag) => (
-                      <span key={tag} className={styles.tag}>
+                      <span key={tag} className="tag-outlined">
                         {tag}
                       </span>
                     ))}

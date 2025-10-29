@@ -1,3 +1,9 @@
+body {
+  @apply bg-deep-space text-space-latte font-serif text-xl;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
 h1 {
     @apply font-serif font-normal;
     @apply text-7xl;
@@ -41,3 +47,4 @@ a:hover {
 
     text-decoration: underline;
 }
+
