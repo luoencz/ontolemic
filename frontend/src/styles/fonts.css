@@ -1,6 +1,3 @@
-@import "./fonts/warnock-pro.css";
-@import "./fonts/neue-haas-unica.css";
-
 h1 {
     @apply font-serif font-normal;
     @apply text-7xl;
