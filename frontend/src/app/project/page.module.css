@@ -21,6 +21,61 @@
   text-align: center;
 }
 
+.filterSection {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+}
+
+.filterButtons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: center;
+}
+
+.filterButton {
+  padding: 0.5rem 1rem;
+  background-color: var(--comment-color);
+  border: 1px solid transparent;
+  border-radius: 4px;
+  color: var(--space-latte);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.filterButton:hover {
+  background-color: var(--primary-color);
+  opacity: 0.8;
+}
+
+.filterButtonActive {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+.clearButton {
+  padding: 0.5rem 1rem;
+  background-color: transparent;
+  border: 1px solid var(--space-latte);
+  border-radius: 4px;
+  color: var(--space-latte);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+  opacity: 0.7;
+}
+
+.clearButton:hover {
+  opacity: 1;
+  background-color: var(--comment-color);
+}
+
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -43,6 +98,7 @@
   transform: translateY(-4px);
   box-shadow: 0 8px 16px rgba(55, 175, 222, 0.2);
 }
+
 
 .imageContainer {
   width: 100%;
@@ -72,6 +128,24 @@
   font-size: 1.5rem;
   font-weight: 500;
   margin: 0;
+  line-height: 1.5;
+  transition: background-color 0.2s ease, color 0.2s ease;
+  position: relative;
+}
+
+.card:hover .cardTitle {
+  text-decoration: underline;
+}
+
+.cardActive:hover .cardTitle,
+.cardActive .cardTitle {
+  text-decoration: none !important;
+  background-color: var(--space-latte);
+  color: var(--deep-space);
+  padding: 0.1em 0.2em;
+  margin: -0.1em -0.2em;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
 }
 
 .cardDescription {
@@ -79,5 +153,23 @@
   line-height: 1.5;
   margin: 0;
   opacity: 0.8;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.tag {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  background-color: var(--deep-space);
+  color: var(--space-latte);
+  border-radius: 12px;
+  font-size: 0.85rem;
+  opacity: 0.8;
+  border: 1px solid var(--comment-color);
 }
 

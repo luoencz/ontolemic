@@ -70,3 +70,21 @@
   opacity: 0.9;
 }
 
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.tag {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  background-color: var(--comment-color);
+  color: var(--space-latte);
+  border-radius: 12px;
+  font-size: 0.85rem;
+  opacity: 0.8;
+  border: 1px solid var(--comment-color);
+}
+

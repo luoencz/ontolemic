@@ -1,20 +1,7 @@
 import Link from "next/link";
 import styles from "./page.module.css";
 import { notFound } from "next/navigation";
-
-// Example projects data - in a real app, this would come from a CMS or database
-const projects: Record<string, { title: string; description: string; image: string }> = {
-  "project-one": {
-    title: "Project One",
-    description: "A brief description of the first project goes here.",
-    image: "/images/svgs/analemma.svg",
-  },
-  "project-two": {
-    title: "Project Two",
-    description: "A brief description of the second project goes here.",
-    image: "/images/svgs/analemma.svg",
-  },
-};
+import { getProjectBySlug } from "../data";
 
 export default async function ProjectPage({
   params,
@@ -22,7 +9,7 @@ export default async function ProjectPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const project = projects[slug];
+  const project = getProjectBySlug(slug);
 
   if (!project) {
     notFound();
@@ -45,6 +32,15 @@ export default async function ProjectPage({
           <div className={styles.projectContent}>
             <h1 className={styles.title}>{project.title}</h1>
             <p className={styles.description}>{project.description}</p>
+            {project.tags.length > 0 && (
+              <div className={styles.tags}>
+                {project.tags.map((tag) => (
+                  <span key={tag} className={styles.tag}>
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>
