@@ -2,7 +2,7 @@
 
 import { useState, ReactNode, ReactElement } from "react";
 import Link from "next/link";
-import { FaXTwitter, FaLinkedin, FaInstagram, FaGithub, FaEnvelope, FaCalendar, FaBook, FaChevronDown, FaChevronRight } from "react-icons/fa6";
+import { FaXTwitter, FaLinkedin, FaInstagram, FaGithub, FaEnvelope, FaCalendar, FaBook, FaChevronDown, FaChevronRight, FaMusic, FaCode } from "react-icons/fa6";
 
 interface CollapsibleSectionProps {
     title: string;
@@ -83,10 +83,13 @@ function CollapsibleSection({ title, isOpen, onToggle, bgColor, children }: Coll
 
 export default function LinksClient() {
     const [openSections, setOpenSections] = useState({
-        contact: true,
-        me: true,
-        blogs: true,
-        books: true,
+        contact: false,
+        me: false,
+        blogs: false,
+        books: false,
+        software: false,
+        websites: false,
+        music: false,
     });
 
     const toggleSection = (section: keyof typeof openSections) => {
@@ -162,6 +165,18 @@ export default function LinksClient() {
             </CollapsibleSection>
 
             <CollapsibleSection
+                title="Websites"
+                isOpen={openSections.websites}
+                onToggle={() => toggleSection('websites')}
+                bgColor="bg-amber-special/50"
+            >
+                <LinkItem
+                    links={{ href: "https://fmhy.net/", icon: <FaBook />, text: "FMHY" }}
+                    description="You need to be cautious recommending pirate sites — but corporations suck, streaming services more so, and sometimes you simply can't buy an ebook without DRM."
+                />
+            </CollapsibleSection>
+
+            <CollapsibleSection
                 title="Books"
                 isOpen={openSections.books}
                 onToggle={() => toggleSection('books')}
@@ -174,8 +189,54 @@ export default function LinksClient() {
                         { href: "https://www.goodreads.com/book/show/2845024-anathem", icon: <FaBook />, text: "Anathem" },
                         { href: "https://www.goodreads.com/book/show/48484.Blindsight", icon: <FaBook />, text: "Blindsight" },
                         { href: "https://www.goodreads.com/book/show/8935689-consider-phlebas", icon: <FaBook />, text: "Consider Phlebas" },
+                        { href: "https://www.goodreads.com/book/show/89187.Revelation_Space", icon: <FaBook />, text: "Revelation Space" },
                     ]}
-                    description="These are some sci-fi books that I enjoyed reading."
+                    description="These are some of my favourite science-fiction books. They are not in any particular order. Many titles are missing, too."
+                />
+
+                <LinkItem
+                    links={{ href: "https://www.readthesequences.com/HomePage", icon: <FaBook />, text: "The Sequences" }}
+                    description="The Sequences, known as a book as 'Rationality: From AI to Zombies' is a great introduction to rational thought."
+                />
+
+                <LinkItem
+                    links={{ href: "https://www.goodreads.com/book/show/228646231-if-anyone-builds-it-everyone-dies", icon: <FaBook />, text: "If Anyone Builds It, Everyone Dies" }}
+                    description="Yudkowsky and Soares have done a great job of explaing the risks of AI developement in a rather striking manner. Their strong claims have a good justification, though."
+                />
+            </CollapsibleSection>
+
+            <CollapsibleSection
+                title="Music"
+                isOpen={openSections.music}
+                onToggle={() => toggleSection('music')}
+                bgColor="bg-amber-special/50"
+            >
+                <LinkItem
+                    links={[
+                        { href: "https://tidal.com/album/58990497/u", icon: <FaMusic />, text: "The Bends" },
+                        { href: "https://tidal.com/album/75144326/u", icon: <FaMusic />, text: "OK Computer" }
+                    ]}
+                    description="Radiohead is one of the most influential bands for me. To this day, Fade Out is one of the only compositions that can bring me to tears."
+                />
+            </CollapsibleSection>
+
+            <CollapsibleSection
+                title="Software"
+                isOpen={openSections.software}
+                onToggle={() => toggleSection('software')}
+                bgColor="bg-ruby-special/50"
+            >
+                <LinkItem
+                    links={{ href: "https://obsidian.md/", icon: <FaCode />, text: "Obsidian" }}
+                    description="Obsidian is great — it's offline, powerful, exists as a collection of directories on your machine. You need to be cautious with community plugins, since they have a full access to your fs, but otherwise its a power tool."
+                />
+
+                <LinkItem
+                    links={[
+                        { href: "https://calibre-ebook.com/about", icon: <FaCode />, text: "Calibre" },
+                        { href: "https://www.yomu-reader.com/", icon: <FaCode />, text: "Yomu" }
+                    ]}
+                    description="Calibre is the best ebook library manager. It's free, open-source, and has a lot of features. When paired with Yomu or Kindle, its the best way to read ebooks."
                 />
             </CollapsibleSection>
         </div>
