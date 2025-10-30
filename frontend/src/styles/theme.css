@@ -1,3 +1,9 @@
 @import "./variables.css";
 @import "./layout.css";
 @import "./components.css";
+
+/* Smooth scrolling and scroll padding for fixed navbar */
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 80px;
+}
