@@ -1,43 +1,17 @@
-name: Deploy Next.js
+# ontolemic/.github/workflows/deploy.yml
+name: deploy-ontolemic
 
 on:
   push:
     branches: [main]
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/deploy.yml'
 
 jobs:
-  deploy-frontend:
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: frontend
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build Next.js
-        run: npm run build
-
-      - name: Copy assets over SSH
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: "frontend/.next,frontend/package.json,frontend/package-lock.json,frontend/public"
-          target: /opt/sites/ontolemic
-
-      - name: Install dependencies and restart PM2 over SSH 
-        uses: appleboy/ssh-action@v0.1.10
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          script: |
-            cd /opt/sites/ontolemic/frontend
-            npm ci --omit=dev
-            sudo -u www-data pm2 restart ontolemic-frontend
-
-
+  deploy:
+    uses: luoencz/.github/.github/workflows/deploy-docker.yml@main
+    with:
+      app_name: ontolemic-frontend
+      dockerfile_path: ./frontend/Dockerfile
+      build_context: ./frontend
